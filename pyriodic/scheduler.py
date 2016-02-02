@@ -1,9 +1,5 @@
 from threading import Timer
-from datetime import datetime
-
-now = datetime.now
-DURATION = 0
-DATETIME = 1
+from . import now
 
 class Scheduler(object):
 	def __init__(self):
@@ -58,11 +54,14 @@ class Scheduler(object):
 			if not job.scheduled and not job.repeating and job.run_count > 0:
 				self.remove(job.name)
 
+	def get_job(self, name):
+		return self.jobs[self.find_job_index(name)]
+
 	def remove(self, name):
 		del self.jobs[self.find_job_index(name)]
 
 	def pop(self, name):
-		self.jobs.pop(self.find_job_index(name))
+		return self.jobs.pop(self.find_job_index(name))
 
 	def job_names(self):
 		return [job.name for job in self.jobs]
@@ -71,3 +70,6 @@ class Scheduler(object):
 		for x, job in enumerate(self.jobs):
 			if job.name == name:
 				return x
+
+	def next_run_times(self):
+		return {job.name: job.next_run_time() for job in self.jobs}

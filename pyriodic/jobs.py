@@ -1,10 +1,9 @@
 from abc import ABCMeta
 from abc import abstractclassmethod
-from isodate import parse_duration
-# from isodate import parse_datetime
-# from dateutil.parser import parser
-#
-# parse_datetime = parser().parse
+from datetime import timedelta
+from datetime import datetime
+from pyriodic import parse
+from . import now
 
 class Job(metaclass=ABCMeta):
 	def __init__(self, func, when, args, kwargs, repeating=True, name=None):
@@ -22,34 +21,33 @@ class Job(metaclass=ABCMeta):
 	def next_run_time(self):
 		pass
 
+	def __repr__(self):
+		return '{}({}, \'{}\', {}, \'{}\')'.format(self.__class__.__name__, self.func.__name__, self.when, self.repeating, self.name)
+
 class DurationJob(Job):
-	def __init__(self, func, args=None, kwargs=None, date_portion=None, time_portion=None, repeating=True, name=None):
-		if date_portion and time_portion:
-			when = 'P{}T{}'.format(date_portion.upper(), time_portion.upper())
-		elif date_portion and not time_portion:
-			when = 'P{}'.format(date_portion.upper())
-		elif not date_portion and time_portion:
-			when = 'PT{}'.format(time_portion.upper())
-		else:
-			raise ValueError('There must be a date portion and/or a time portion')
+	def __init__(self, func, when, args=None, kwargs=None, repeating=True, name=None):
+		if not isinstance(when, (str, timedelta)):
+			raise TypeError('Argument \'when\' must be either a string or timedelta object, not {}'.format(type(when)))
 		super().__init__(func, when, args, kwargs, repeating, name)
-		self.date_portion = date_portion
-		self.time_portion = time_portion
 
 	def next_run_time(self):
-		return self.last_run_time + parse_duration(self.when)
+		if isinstance(self.when, str):
+			return self.last_run_time + parse.duration(self.when)
+		else:
+			return self.last_run_time + self.when
 
-	def __repr__(self):
-		if self.date_portion and self.time_portion:
-			return 'DurationJob({}, \'{}\', \'{}\', {}, \'{}\')'.format(self.func.__name__, self.date_portion, self.time_portion, self.repeating, self.name)
-		elif self.date_portion and not self.time_portion:
-			return 'DurationJob({}, \'{}\', None, {}, \'{}\')'.format(self.func.__name__, self.date_portion, self.repeating, self.name)
-		elif not self.date_portion and self.time_portion:
-			return 'DurationJob({}, None, \'{}\', {}, \'{}\')'.format(self.func.__name__, self.time_portion, self.repeating, self.name)
+class DatetimeJob(Job):
+	def __init__(self, func, when, args=None, kwargs=None, repeating=True, name=None):
+		if not isinstance(when, (str, datetime)):
+			raise TypeError('Argument \'when\' must be a string object, not {}'.format(type(when)))
+		super().__init__(func, when, args, kwargs, repeating, name)
 
-# class DatetimeJob(Job):
-# 	def __init__(self, func, when, repeating=True, name=None):
-# 		super().__init__(func, when, repeating, name)
-#
-# 	def next_run_time(self):
-# 		return parse_datetime(self.when) - now()
+	def next_run_time(self):
+		when = parse.datetime(self.when)
+		while not self.is_in_future(when):
+			when = when + timedelta(days=1)
+		return when
+
+	@staticmethod
+	def is_in_future(when):
+		return (when - now()).total_seconds() > 0
