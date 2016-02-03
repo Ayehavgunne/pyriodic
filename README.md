@@ -8,7 +8,7 @@ This project is in the alpha stage so there is a lot yet to do.
 
 ---
 
-#Installation
+##Installation
 
 ```
 pip install pyriodic
@@ -16,7 +16,7 @@ pip install pyriodic
 
 ---
 
-#Dependencies
+##Dependencies
 
 Pyriodic can be installed and used on it's own but if tasks need to be scheduled at a specific date/time then the module dateutil is invaluble. Without it acceptable datetime strings are rather limited.
 
@@ -24,7 +24,7 @@ If dateutil is already installed then it will be used automatically.
 
 ---
 
-#Usage
+##Usage
 
 ```python
 from pyriodic import DurationJob
