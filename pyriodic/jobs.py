@@ -5,7 +5,7 @@ from pyriodic import parse
 from . import now
 
 class Job(metaclass=ABCMeta):
-	def __init__(self, func, when, args, kwargs, repeating=True, name=None):
+	def __init__(self, func, when, args, kwargs, repeating=True, name=None, threaded=True):
 		self.func = func
 		self.when = when
 		self.args = args
@@ -16,7 +16,7 @@ class Job(metaclass=ABCMeta):
 		self.scheduled = False
 		self.run_count = 0
 		self.paused = False
-		self.threaded = True
+		self.threaded = threaded
 
 	@abstractclassmethod
 	def next_run_time(self):
@@ -26,10 +26,10 @@ class Job(metaclass=ABCMeta):
 		return '{}({}, \'{}\', {}, \'{}\')'.format(self.__class__.__name__, self.func.__name__, self.when, self.repeating, self.name)
 
 class DurationJob(Job):
-	def __init__(self, func, when, args=None, kwargs=None, repeating=True, name=None):
+	def __init__(self, func, when, args=None, kwargs=None, repeating=True, name=None, threaded=True):
 		if not isinstance(when, (str, timedelta)):
 			raise TypeError('Argument \'when\' must be either a string or timedelta object, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, repeating, name)
+		super().__init__(func, when, args, kwargs, repeating, name, threaded)
 
 	def next_run_time(self):
 		if isinstance(self.when, str):
@@ -38,10 +38,10 @@ class DurationJob(Job):
 			return self.last_run_time + self.when
 
 class DatetimeJob(Job):
-	def __init__(self, func, when, args=None, kwargs=None, repeating=True, name=None):
+	def __init__(self, func, when, args=None, kwargs=None, repeating=True, name=None, threaded=True):
 		if not isinstance(when, str):
 			raise TypeError('Argument \'when\' must be a string object, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, repeating, name)
+		super().__init__(func, when, args, kwargs, repeating, name, threaded)
 
 	def next_run_time(self):
 		when = parse.datetime(self.when)

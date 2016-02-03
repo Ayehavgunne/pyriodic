@@ -37,9 +37,9 @@ class Scheduler(object):
 		if self.current_job:
 			if self.current_job.threaded:
 				self._run_threaded()
+				self.current_job_thread.start()
 			else:
 				self._run_synchronously()
-			self.current_job_thread.start()
 			self.current_job.run_count += 1
 			if self.log:
 				self.log.info('Job "{}" was started. Run count = {}'.format(self.current_job.name, self.current_job.run_count))
