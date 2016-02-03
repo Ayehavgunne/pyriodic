@@ -73,21 +73,25 @@
 <span class="pl-k">from</span> pyriodic <span class="pl-k">import</span> DatetimeJob
 <span class="pl-k">from</span> pyriodic <span class="pl-k">import</span> Scheduler
 
+now <span class="pl-k">=</span> datetime.now
 s <span class="pl-k">=</span> Scheduler()
 
-start <span class="pl-k">=</span> datetime.now()
+start <span class="pl-k">=</span> now()
 
 <span class="pl-k">def</span> <span class="pl-en">func1</span>(<span class="pl-smi">arg1</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">arg2</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">arg3</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">arg4</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
-    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func1<span class="pl-pds">'</span></span>, arg1, arg2, arg3, arg4, datetime.now() <span class="pl-k">-</span> start, datetime.now())
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func1<span class="pl-pds">'</span></span>, arg1, arg2, arg3, arg4, now() <span class="pl-k">-</span> start, datetime.now())
 
 <span class="pl-k">def</span> <span class="pl-en">func2</span>():
-    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func2<span class="pl-pds">'</span></span>, datetime.now() <span class="pl-k">-</span> start, datetime.now())
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func2<span class="pl-pds">'</span></span>, datetime.now() <span class="pl-k">-</span> start, now())
 
 <span class="pl-k">def</span> <span class="pl-en">func3</span>():
-    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func3<span class="pl-pds">'</span></span>, datetime.now() <span class="pl-k">-</span> start, datetime.now())
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func3<span class="pl-pds">'</span></span>, datetime.now() <span class="pl-k">-</span> start, now())
 
-s.add_job(DurationJob(func1, <span class="pl-v">when</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>30m<span class="pl-pds">'</span></span>, <span class="pl-v">args</span><span class="pl-k">=</span>(<span class="pl-s"><span class="pl-pds">'</span>This<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>is<span class="pl-pds">'</span></span>), <span class="pl-v">kwargs</span><span class="pl-k">=</span>{<span class="pl-s"><span class="pl-pds">'</span>arg3<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>the<span class="pl-pds">'</span></span>,
-                    <span class="pl-s"><span class="pl-pds">'</span>arg4<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>first function<span class="pl-pds">'</span></span>}, <span class="pl-v">name</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>MyJob<span class="pl-pds">'</span></span>))
+s.add_job(DurationJob(func1,
+                    <span class="pl-v">when</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>30m<span class="pl-pds">'</span></span>,
+                    <span class="pl-v">args</span><span class="pl-k">=</span>(<span class="pl-s"><span class="pl-pds">'</span>This<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>is<span class="pl-pds">'</span></span>),
+                    <span class="pl-v">kwargs</span><span class="pl-k">=</span>{<span class="pl-s"><span class="pl-pds">'</span>arg3<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>the<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>arg4<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>first function<span class="pl-pds">'</span></span>},
+                    <span class="pl-v">name</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>MyJob<span class="pl-pds">'</span></span>))
 s.add_job(DurationJob(func2, <span class="pl-v">when</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>2h<span class="pl-pds">'</span></span>))
 s.add_job(DatetimeJob(func3, <span class="pl-v">when</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>12:00 pm<span class="pl-pds">'</span></span>))
 
