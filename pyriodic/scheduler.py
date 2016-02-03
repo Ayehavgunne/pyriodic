@@ -2,10 +2,15 @@ from threading import Timer
 from . import now
 
 class Scheduler(object):
-	def __init__(self):
+	def __init__(self, log_path=None):
 		self.jobs = []
 		self.current_job = None
 		self.sleeper = None
+		self.running = False
+		if log_path:
+			import logging
+			self.log_path = log_path
+			self.log = logging.basicConfig(filename=log_path)
 
 	def set_timer(self):
 		if self.jobs:
@@ -18,6 +23,7 @@ class Scheduler(object):
 				self.sleeper.start()
 				next_job.scheduled = True
 				self.current_job = next_job
+				self.running = True
 
 	def execute_job(self):
 		if self.current_job:
@@ -29,13 +35,16 @@ class Scheduler(object):
 				self.current_job.func(*self.current_job.args, **self.current_job.kwargs)
 			else:
 				self.current_job.func()
+			if self.log:
+				self.log.info('Job "{}" was executed. Run count = {}'.format(self.current_job.name, self.current_job.run_count))
 			self.current_job.run_count += 1
 			self.current_job.last_run_time = now()
 			self.current_job.scheduled = False
 			self.current_job = None
-		self.trim_jobs()
-		self.sort_jobs()
-		self.set_timer()
+		if self.running:
+			self.trim_jobs()
+			self.sort_jobs()
+			self.set_timer()
 
 	def sort_jobs(self):
 		if len(self.jobs) > 1:
@@ -48,6 +57,7 @@ class Scheduler(object):
 		self.jobs.append(job)
 		self.sort_jobs()
 		self.set_timer()
+		return job.name
 
 	def trim_jobs(self):
 		for job in self.jobs:
@@ -73,3 +83,12 @@ class Scheduler(object):
 
 	def next_run_times(self):
 		return {job.name: job.next_run_time() for job in self.jobs}
+
+	def start(self):
+		self.sort_jobs()
+		self.set_timer()
+
+	def stop(self):
+		self.running = False
+		if self.sleeper:
+			self.sleeper.cancel()

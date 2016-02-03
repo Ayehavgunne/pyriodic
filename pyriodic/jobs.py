@@ -1,7 +1,6 @@
 from abc import ABCMeta
 from abc import abstractclassmethod
 from datetime import timedelta
-from datetime import datetime
 from pyriodic import parse
 from . import now
 
@@ -38,7 +37,7 @@ class DurationJob(Job):
 
 class DatetimeJob(Job):
 	def __init__(self, func, when, args=None, kwargs=None, repeating=True, name=None):
-		if not isinstance(when, (str, datetime)):
+		if not isinstance(when, str):
 			raise TypeError('Argument \'when\' must be a string object, not {}'.format(type(when)))
 		super().__init__(func, when, args, kwargs, repeating, name)
 
