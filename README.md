@@ -36,16 +36,16 @@ s = Scheduler()
 start = datetime.now()
 
 def func1(arg1=None, arg2=None, arg3=None, arg4=None):
-	print('Func 1', arg1, arg2, arg3, arg4, datetime.now() - start, datetime.now())
+	print('Func1', arg1, arg2, arg3, arg4, datetime.now() - start, datetime.now())
 
 def func2():
-	print('Func 2', datetime.now() - start, datetime.now())
+	print('Func2', datetime.now() - start, datetime.now())
 
 def func3():
-	print('Func 3', datetime.now() - start, datetime.now())
+	print('Func3', datetime.now() - start, datetime.now())
 
 s.add_job(DurationJob(func1, when='30m', args=('This', 'is'),
-								kwargs={'arg3': 'the', 'arg4': 'first function'}, name='MyJob'))
+                    kwargs={'arg3': 'the', 'arg4': 'first function'}, name='MyJob'))
 s.add_job(DurationJob(func2, when='2h'))
 s.add_job(DatetimeJob(func3, when='12:00 pm'))
 
