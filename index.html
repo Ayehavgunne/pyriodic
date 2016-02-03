@@ -50,12 +50,60 @@
 <hr>
 
 <h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<pre><code>pip install pyriodic
+</code></pre>
+
+<hr>
+
+<h2>
+<a id="dependencies" class="anchor" href="#dependencies" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Dependencies</h2>
+
+<p>Pyriodic can be installed and used on it's own but if tasks need to be scheduled at a specific date/time then the module dateutil is invaluble. Without it acceptable datetime strings are rather limited.</p>
+
+<p>If dateutil is already installed then it will be used automatically.</p>
+
+<hr>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h2>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">from</span> pyriodic <span class="pl-k">import</span> DurationJob
+<span class="pl-k">from</span> pyriodic <span class="pl-k">import</span> DatetimeJob
+<span class="pl-k">from</span> pyriodic <span class="pl-k">import</span> Scheduler
+
+s <span class="pl-k">=</span> Scheduler()
+
+start <span class="pl-k">=</span> datetime.now()
+
+<span class="pl-k">def</span> <span class="pl-en">func1</span>(<span class="pl-smi">arg1</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">arg2</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">arg3</span><span class="pl-k">=</span><span class="pl-c1">None</span>, <span class="pl-smi">arg4</span><span class="pl-k">=</span><span class="pl-c1">None</span>):
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func 1<span class="pl-pds">'</span></span>, arg1, arg2, arg3, arg4, datetime.now() <span class="pl-k">-</span> start, datetime.now())
+
+<span class="pl-k">def</span> <span class="pl-en">func2</span>():
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func 2<span class="pl-pds">'</span></span>, datetime.now() <span class="pl-k">-</span> start, datetime.now())
+
+<span class="pl-k">def</span> <span class="pl-en">func3</span>():
+    <span class="pl-c1">print</span>(<span class="pl-s"><span class="pl-pds">'</span>Func 3<span class="pl-pds">'</span></span>, datetime.now() <span class="pl-k">-</span> start, datetime.now())
+
+s.add_job(DurationJob(func1, <span class="pl-v">when</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>30m<span class="pl-pds">'</span></span>, <span class="pl-v">args</span><span class="pl-k">=</span>(<span class="pl-s"><span class="pl-pds">'</span>This<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>is<span class="pl-pds">'</span></span>),
+                                <span class="pl-v">kwargs</span><span class="pl-k">=</span>{<span class="pl-s"><span class="pl-pds">'</span>arg3<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>the<span class="pl-pds">'</span></span>, <span class="pl-s"><span class="pl-pds">'</span>arg4<span class="pl-pds">'</span></span>: <span class="pl-s"><span class="pl-pds">'</span>first function<span class="pl-pds">'</span></span>}, <span class="pl-v">name</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>MyJob<span class="pl-pds">'</span></span>))
+s.add_job(DurationJob(func2, <span class="pl-v">when</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>2h<span class="pl-pds">'</span></span>))
+s.add_job(DatetimeJob(func3, <span class="pl-v">when</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>12:00 pm<span class="pl-pds">'</span></span>))
+
+<span class="pl-c1">print</span>(s.next_run_times())</pre></div>
+
+<hr>
+
+<h2>
 <a id="todo" class="anchor" href="#todo" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Todo</h2>
 
 <ul>
 <li>[ ] Add timezone awareness</li>
-<li>[ ] Add logging capability</li>
-<li>[ ] Add more options for error handling
+<li>[ ] Add tests</li>
+<li>[ ] Add docstrings</li>
+<li>[ ] Add ability to schedule jobs with decorators</li>
+<li>[ ] Add options for error handling
 
 <ul>
 <li>[ ] Add option for a waiting time before the next function call after an exception</li>
@@ -63,7 +111,6 @@
 <li>[ ] Add the option to execute a different function upon an exception</li>
 </ul>
 </li>
-<li>[ ] Add docstrings</li>
 <li>[ ] A web front end; probably with CherryPy
 
 <ul>
@@ -71,8 +118,9 @@
 <li>[ ] Control jobs; pause, remove, reschedule</li>
 </ul>
 </li>
-<li>[ ] Allow setup with a configuration file</li>
-<li>[ ] Add a shutdown process</li>
+<li>[ ] Expand the abilities of the custom datetime string parser in case dateutil cannot be used</li>
+<li>[x] Add stop and start methods to scheduler</li>
+<li>[x] Add some kind of logging for executed tasks</li>
 </ul>
       </section>
 
