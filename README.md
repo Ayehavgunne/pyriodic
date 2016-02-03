@@ -44,7 +44,8 @@ def func2():
 def func3():
 	print('Func 3', datetime.now() - start, datetime.now())
 
-s.add_job(DurationJob(func1, when='30m', args=('This', 'is'), kwargs={'arg3': 'the', 'arg4': 'first function'}, name='MyJob'))
+s.add_job(DurationJob(func1, when='30m', args=('This', 'is'),
+								kwargs={'arg3': 'the', 'arg4': 'first function'}, name='MyJob'))
 s.add_job(DurationJob(func2, when='2h'))
 s.add_job(DatetimeJob(func3, when='12:00 pm'))
 
@@ -60,7 +61,7 @@ print(s.next_run_times())
 - [ ] Add tests
 - [ ] Add docstrings
 - [ ] Add ability to schedule jobs with decorators
-- [ ] Add more options for error handling
+- [ ] Add options for error handling
   - [ ] Add option for a waiting time before the next function call after an exception
   - [ ] Add option for the number of retrys after exceptions
   - [ ] Add the option to execute a different function upon an exception
