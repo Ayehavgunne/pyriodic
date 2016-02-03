@@ -20,7 +20,7 @@ pip install pyriodic
 
 Pyriodic can be installed and used on it's own but if tasks need to be scheduled at a specific date/time then the module dateutil is invaluble. Without it acceptable datetime strings are rather limited.
 
-If dateutil is already installed then it will be used automatically
+If dateutil is already installed then it will be used automatically.
 
 ---
 
@@ -68,3 +68,5 @@ print(s.next_run_times())
   - [ ] Be able to see the scheduled jobs
   - [ ] Control jobs; pause, remove, reschedule
 - [ ] Expand the abilities of the custom datetime string parser in case dateutil cannot be used
+- [x] Add stop and start methods to scheduler
+- [x] Add some kind of logging for executed tasks
