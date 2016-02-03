@@ -24,11 +24,7 @@ def duration(duration_string):#I hate regex even though I should be using it her
 				prev_num = []
 		elif character.isnumeric() or character == '.':
 			prev_num.append(character)
-		if total_seconds == int(total_seconds):
-			total_seconds = int(total_seconds)
-		else:
-			total_seconds = float(total_seconds)
-	return timedelta(seconds=total_seconds)
+	return timedelta(seconds=int(total_seconds))
 
 def datetime(datetime_string):
 	try:

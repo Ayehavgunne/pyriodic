@@ -15,6 +15,8 @@ class Job(metaclass=ABCMeta):
 		self.last_run_time = None
 		self.scheduled = False
 		self.run_count = 0
+		self.paused = False
+		self.threaded = True
 
 	@abstractclassmethod
 	def next_run_time(self):
