@@ -1,21 +1,26 @@
 from threading import Timer
 from threading import Thread
 from . import now
+from . import start_web_interface
 
 class Scheduler(object):
-	def __init__(self, log_path=None):
+	def __init__(self, log_path=None, web=False):
 		self.jobs = []
 		self.current_job = None
 		self.current_job_thread = None
 		self.sleeper = None
 		self.running = False
+		self.log_path = None
+		self.log = None
+		self.web = None
 		if log_path:
 			import logging
 			self.log_path = log_path
-			self.log = logging.basicConfig(filename=log_path)
-		else:
-			self.log_path = None
-			self.log = None
+			logging.basicConfig(filename=log_path)
+			self.log = logging.getLogger('Scheduler')
+		if web:
+			self.web = Thread(target=start_web_interface, args=(self,))
+			self.web.start()
 
 	def set_timer(self):
 		if self.jobs:
@@ -77,7 +82,7 @@ class Scheduler(object):
 
 	def add_job(self, job):
 		if job.name is None:
-			job.name = 'job{}'.format(len(self.jobs) + 1)
+			job.name = 'Job{}'.format(len(self.jobs) + 1)
 		job.last_run_time = now()
 		self.jobs.append(job)
 		self.sort_jobs()

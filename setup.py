@@ -1,14 +1,16 @@
 import os
 import sys
 from setuptools import setup
+from setuptools import find_packages
 
-version = '0.0.1'
+version = '0.0.2'
 
 long_description = '''
 ====
-pyriodic
+Pyriodic
 ====
-is a task scheduler written in Python to run periodic jobs.
+
+A job scheduler written in Python to run periodic tasks.
 This project was just started and is in the alpha stage so there is a lot yet to do.
 Go to http://ayehavgunne.github.io/pyriodic/ for more information.
 '''
@@ -32,10 +34,11 @@ setup(
 	maintainer_email='postanthony3000 at gmail com',
 	url='http://ayehavgunne.github.io/pyriodic/',
 	download_url='http://ayehavgunne.github.io/pyriodic/',
-	description='A scheduler that uses dateutil to run periodic jobs.',
+	description='A job scheduler written in Python to run periodic tasks.',
 	long_description=long_description,
+	packages=find_packages(),
 	license=bsd_license,
-	keywords='schedule periodic job task time timer thread calendar clock queue',
+	keywords='schedule scheduler periodic job task time timer thread calendar clock queue',
 	classifiers=[
 		'Development Status :: 2 - Pre-Alpha',
 		'Programming Language :: Python :: %s.%s' % (sys.version_info[0], sys.version_info[1]),
