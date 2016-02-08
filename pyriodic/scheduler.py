@@ -25,8 +25,10 @@ class Scheduler(object):
 	def set_timer(self):
 		if self.jobs:
 			x = 0
-			while self.jobs[x].paused:
+			while self.jobs[x].status == 'paused':
 				x += 1
+				if x >= len(self.jobs):
+					return
 			next_job = self.jobs[x]
 			if self.current_job != next_job:
 				if self.sleeper:
@@ -40,11 +42,14 @@ class Scheduler(object):
 
 	def execute_job(self):
 		if self.current_job:
+
 			if self.current_job.threaded:
 				self._run_threaded()
 				self.current_job_thread.start()
 			else:
+				self.current_job.status = 'running'
 				self._run_synchronously()
+				self.current_job.status = 'waiting'
 			self.current_job.run_count += 1
 			if self.log:
 				self.log.info('Job "{}" was started. Run count = {}'.format(self.current_job.name, self.current_job.run_count))
@@ -105,11 +110,9 @@ class Scheduler(object):
 		self.sort_jobs()
 		self.set_timer()
 
-	def remove(self, name):
-		idx = self.find_job_index(name)
-		if self.current_job == self.jobs[idx]:
-			self.reset()
-		del self.jobs[idx]
+	def remove(self, name, _=False):
+		del self.jobs[self.find_job_index(name)]
+		self.reset()
 
 	def pop(self, name):
 		idx = self.find_job_index(name)
@@ -128,9 +131,9 @@ class Scheduler(object):
 	def next_run_times(self):
 		return {job.name: job.next_run_time() for job in self.jobs}
 
-	def start(self, name=None):
+	def start(self, name=None, _=False):
 		if name:
-			self.jobs[self.find_job_index(name)].paused = False
+			self.jobs[self.find_job_index(name)].status = 'waiting'
 		self.reset()
 
 	def stop(self):
@@ -141,7 +144,7 @@ class Scheduler(object):
 
 	def pause(self, name, cancel_current=False):
 		job = self.jobs[self.find_job_index(name)]
-		job.paused = True
+		job.status = 'paused'
 		if cancel_current:
 			if self.current_job == job:
 				self.reset()

@@ -15,7 +15,7 @@ class Job(metaclass=ABCMeta):
 		self.last_run_time = None
 		self.scheduled = False
 		self.run_count = 0
-		self.paused = False
+		self.status = 'paused'
 		self.threaded = threaded
 
 	@abstractclassmethod

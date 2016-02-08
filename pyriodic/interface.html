@@ -22,6 +22,9 @@
 				color:white;
 				margin-left:6px;
 			}
+			#sidebar span {
+				cursor:pointer;
+			}
 			#content {
 				float:left;
 				width:calc(100% - 100px);
@@ -51,7 +54,7 @@
 			.jobName {
 				font-weight:bold;
 			}
-			span.clearJob, span.pauseJob, span.startJob {
+			span.clear, span.pause, span.start {
 				float:right;
 				clear:right;
 				font-size:small;
@@ -62,8 +65,59 @@
 		</style>
 		<script type="text/javascript">
 			$(function(){
-				$.get('getjobs', function (html) {
-					$('#jobs').html(html);
+				function getjobs() {
+					$.get('/jobs', function (html) {
+						$('#jobs').html(html);
+						$('.start').click(function () {
+							$.ajax({
+								url: '/jobs/start/' + $(this).parent().data('job'),
+								type: 'PUT'
+							}).done(function() {
+								getjobs();
+							});
+						});
+						$('.pause').click(function () {
+							$.ajax({
+								url: '/jobs/pause/' + $(this).parent().data('job'),
+								type: 'PUT'
+							}).done(function() {
+								getjobs();
+							});
+						});
+						$('.clear').click(function () {
+							$.ajax({
+								url: '/jobs/' + $(this).parent().data('job'),
+								type: 'DELETE'
+							}).done(function() {
+								getjobs();
+							});
+						});
+					});
+				}
+				getjobs();
+				$('#start').click(function() {
+					$.ajax({
+						url: '/jobs/start',
+						type: 'PUT'
+					}).done(function() {
+						getjobs();
+					});
+				});
+				$('#pause').click(function() {
+					$.ajax({
+						url: '/jobs/pause',
+						type: 'PUT'
+					}).done(function() {
+						getjobs();
+					});
+				});
+				$('#clear').click(function() {
+					$.ajax({
+						url: '/jobs',
+						type: 'DELETE'
+					}).done(function() {
+						getjobs();
+					});
 				});
 			});
 		</script>
