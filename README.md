@@ -2,7 +2,7 @@
 
 _Pronounced just like "periodic"_
 
-A job scheduler written in Python to run periodic tasks.
+A job scheduler for running periodic tasks in Python.
 
 This project is in the alpha stage so there is a lot yet to do.
 
