@@ -3,7 +3,7 @@ import sys
 from setuptools import setup
 from setuptools import find_packages
 
-version = '0.0.2'
+version = '0.0.3'
 
 long_description = '''
 ====
@@ -27,11 +27,10 @@ if os.path.exists('LICENSE'):
 setup(
     name='pyriodic',
 	version=version,
-	py_modules=['pyriodic/pyriodic', 'pyriodic/__init__'],
 	author='Anthony Post',
-	author_email='postanthony3000 at gmail com',
+	author_email='postanthony3000@gmail.com',
 	maintainer='Anthony Post',
-	maintainer_email='postanthony3000 at gmail com',
+	maintainer_email='postanthony3000@gmail.com',
 	url='http://ayehavgunne.github.io/pyriodic/',
 	download_url='http://ayehavgunne.github.io/pyriodic/',
 	description='A job scheduler written in Python to run periodic tasks.',
@@ -40,8 +39,9 @@ setup(
 	license=bsd_license,
 	keywords='schedule scheduler periodic job task time timer thread calendar clock queue',
 	classifiers=[
-		'Development Status :: 2 - Pre-Alpha',
+		'Development Status :: 3 - Alpha',
 		'Programming Language :: Python :: %s.%s' % (sys.version_info[0], sys.version_info[1]),
-		'Intended Audience :: Developers'
+		'Intended Audience :: Developers',
+		'Topic :: Utilities'
 	]
 )

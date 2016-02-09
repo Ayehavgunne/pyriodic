@@ -4,23 +4,13 @@ from . import now
 from . import start_web_interface
 
 class Scheduler(object):
-	def __init__(self, log_path=None, web=False):
+	def __init__(self, log=None):
 		self.jobs = []
 		self.current_job = None
 		self.current_job_thread = None
 		self.sleeper = None
 		self.running = False
-		self.log_path = None
-		self.log = None
-		self.web = None
-		if log_path:
-			import logging
-			self.log_path = log_path
-			logging.basicConfig(filename=log_path)
-			self.log = logging.getLogger('Scheduler')
-		if web:
-			self.web = Thread(target=start_web_interface, args=(self,))
-			self.web.start()
+		self.log = log
 
 	def set_timer(self):
 		if self.jobs:
@@ -42,44 +32,20 @@ class Scheduler(object):
 
 	def execute_job(self):
 		if self.current_job:
-
 			if self.current_job.threaded:
-				self._run_threaded()
-				self.current_job_thread.start()
+				self.current_job.thread = Thread(target=job_func_wrapper, args=(self.current_job,))
+				self.current_job.thread.start()
 			else:
-				self.current_job.status = 'running'
-				self._run_synchronously()
-				self.current_job.status = 'waiting'
-			self.current_job.run_count += 1
+				job_func_wrapper(self.current_job)
 			if self.log:
 				self.log.info('Job "{}" was started. Run count = {}'.format(self.current_job.name, self.current_job.run_count))
-			self.current_job.last_run_time = now()
+			self.current_job.add_run_time(now())
 			self.current_job.scheduled = False
 			self.current_job = None
 		if self.running:
 			self.trim_jobs()
 			self.sort_jobs()
 			self.set_timer()
-
-	def _run_threaded(self):
-		if self.current_job.args and not self.current_job.kwargs:
-			self.current_job_thread = Thread(target=self.current_job.func, args=self.current_job.args)
-		elif not self.current_job.args and self.current_job.kwargs:
-			self.current_job_thread = Thread(target=self.current_job.func, kwargs=self.current_job.kwargs)
-		elif self.current_job.args and self.current_job.kwargs:
-			self.current_job_thread = Thread(target=self.current_job.func, args=self.current_job.args, kwargs=self.current_job.kwargs)
-		else:
-			self.current_job_thread = Thread(target=self.current_job.func)
-
-	def _run_synchronously(self):
-		if self.current_job.args and not self.current_job.kwargs:
-			self.current_job.func(*self.current_job.args)
-		elif not self.current_job.args and self.current_job.kwargs:
-			self.current_job.func(**self.current_job.kwargs)
-		elif self.current_job.args and self.current_job.kwargs:
-			self.current_job.func(*self.current_job.args, **self.current_job.kwargs)
-		else:
-			self.current_job.func()
 
 	def sort_jobs(self):
 		if len(self.jobs) > 1:
@@ -88,7 +54,6 @@ class Scheduler(object):
 	def add_job(self, job):
 		if job.name is None:
 			job.name = 'Job{}'.format(len(self.jobs) + 1)
-		job.last_run_time = now()
 		self.jobs.append(job)
 		self.sort_jobs()
 		self.set_timer()
@@ -148,3 +113,26 @@ class Scheduler(object):
 		if cancel_current:
 			if self.current_job == job:
 				self.reset()
+
+	def start_lone_web_server(self, port=8765):
+		import cherrypy
+		start_web_interface(self)
+		cherrypy.config.update({'server.socket_port': port, 'engine.autoreload.on': False})
+		cherrypy.engine.start()
+
+	def start_existing_web_server(self):
+		start_web_interface(self)
+
+def job_func_wrapper(job):
+	job.status = 'running'
+	args = job.args
+	kwargs = job.kwargs
+	if args and not kwargs:
+		job.func(*args)
+	elif not args and kwargs:
+		job.func(**kwargs)
+	elif args and kwargs:
+		job.func(*args, **kwargs)
+	else:
+		job.func()
+	job.status = 'waiting'

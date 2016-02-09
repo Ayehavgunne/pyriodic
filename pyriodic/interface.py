@@ -9,7 +9,6 @@ port = 8765
 def start_web_interface(scheduler):
 	if cherrypy:
 		# noinspection PyPep8Naming
-		# noinspection PyMethodMayBeStatic
 		class Jobs(object):
 			exposed = True
 
@@ -22,16 +21,24 @@ def start_web_interface(scheduler):
 						html = '{}{}'.format(html, self.job_to_html(job))
 				return html
 
+			# noinspection PyMethodMayBeStatic
 			def POST(self):
 				raise cherrypy.HTTPError(405, 'Method not implemented.')
 
-			def PUT(self, status, name=None):
-				action = getattr(scheduler, status)
-				if name:
-					action(name, True)
+			def PUT(self, name=None, status=None, when=None):
+				if status != 'when':
+					action = getattr(scheduler, status)
+					if name != 'all':
+						action(name, True)
+					else:
+						for job in scheduler.jobs:
+							action(job.name, True)
 				else:
-					for job in scheduler.jobs:
-						action(job.name, True)
+					if name != 'all' and when:
+						job = scheduler.get_job(name)
+						job.when = when
+						scheduler.reset()
+				return self.GET()
 
 			def DELETE(self, name=None):
 				if name:
@@ -39,10 +46,19 @@ def start_web_interface(scheduler):
 				else:
 					for job in reversed(scheduler.jobs):
 						scheduler.remove(job.name)
+				return self.GET()
 
 			@staticmethod
 			def job_to_html(job):
-				return '<div class="job" data-job="{0}"><div><span class="jobName">{0}</span><span class="funcName">Function: {1}</span></div><div><span class="lastRunTime">Last Run Time: {2}</span><span class="nextRunTime">Next Run Time: {3}</span></div><div><span class="when">Interval: {4}</span></div><span class="start">Start</span><span class="pause">Pause</span><span class="clear">Clear</span></div>'.format(job.name, job.func.__name__, job.last_run_time.strftime('%Y-%m-%d %I:%M:%S %p'), job.next_run_time().strftime('%Y-%m-%d %I:%M:%S %p'), job.when)
+				return '<div class="job" data-job="{0}"><div><span class="jobName">{0}</span></div><div><span class="funcName">Function: {1}</span><span>Run Count: {6}</span></div><div><span class="lastRunTime">Last Run Time: {2}</span><span class="nextRunTime">Next Run Time: {3}</span></div><div><span class="when">Interval: {4}</span><span>Status: {5}</span></div><span class="start">Start</span><span class="pause">Pause</span><span class="clear">Clear</span></div>'.format(job.name, job.func.__name__, job.last_run_time.strftime('%Y-%m-%d %I:%M:%S %p') if job.last_run_time else '', job.next_run_time().strftime('%Y-%m-%d %I:%M:%S %p'), job.when, job.status.title(), job.run_count)
+
+			@staticmethod
+			def job_history_to_html(job):
+				html = '<div class="job" data-job="{}">'.format(job.name)
+				for run_time in job.run_time_history:
+					html = '{}<div>{}</div>'.format(html, run_time.strftime('%Y-%m-%d %I:%M:%S %p'))
+				html = '{}</div>'.format(html)
+				return html
 
 		class Interface(object):
 			jobs = Jobs()
@@ -69,5 +85,4 @@ def start_web_interface(scheduler):
 			}
 		}
 
-		cherrypy.config.update({'server.socket_port': port, 'engine.autoreload.on': False})
-		cherrypy.quickstart(Interface(), '/', config=conf)
+		cherrypy.tree.mount(Interface(), '/pyriodic', config=conf)

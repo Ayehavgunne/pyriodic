@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!--suppress CssUnusedSymbol -->
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
@@ -47,12 +48,20 @@
 				float:left;
 				margin-right:20px;
 			}
+			.job div span:first-of-type {
+				margin-bottom:3px;
+			}
 			.job span {
 				float:left;
 				clear:left;
 			}
 			.jobName {
 				font-weight:bold;
+				min-width:50px;
+			}
+			.when {
+				color:#0377E8;
+				cursor:pointer;
 			}
 			span.clear, span.pause, span.start {
 				float:right;
@@ -61,62 +70,88 @@
 				position:relative;
 				bottom:4px;
 				cursor:pointer;
+				color:#0377E8;
 			}
 		</style>
 		<script type="text/javascript">
 			$(function(){
-				function getjobs() {
-					$.get('/jobs', function (html) {
-						$('#jobs').html(html);
-						$('.start').click(function () {
-							$.ajax({
-								url: '/jobs/start/' + $(this).parent().data('job'),
-								type: 'PUT'
-							}).done(function() {
-								getjobs();
-							});
+				function jobbuttons() {
+					$('.start').unbind('click').click(function () {
+						$.ajax({
+							url: './jobs/start/' + $(this).parent().data('job'),
+							type: 'PUT'
+						}).done(function(html) {
+							$('#jobs').html(html);
+							jobbuttons();
 						});
-						$('.pause').click(function () {
-							$.ajax({
-								url: '/jobs/pause/' + $(this).parent().data('job'),
-								type: 'PUT'
-							}).done(function() {
-								getjobs();
-							});
+					});
+					$('.pause').unbind('click').click(function () {
+						$.ajax({
+							url: './jobs/pause/' + $(this).parent().data('job'),
+							type: 'PUT'
+						}).done(function(html) {
+							$('#jobs').html(html);
+							jobbuttons();
 						});
-						$('.clear').click(function () {
+					});
+					$('.clear').unbind('click').click(function () {
+						$.ajax({
+							url: './jobs/' + $(this).parent().data('job'),
+							type: 'DELETE'
+						}).done(function(html) {
+							$('#jobs').html(html);
+							jobbuttons();
+						});
+					});
+					$('.when').unbind('click').click(function() {
+						var text = $(this).html().replace('Interval: ', '');
+						$(this).html('<button>Done</button><input type="text" value="'+ text + '" />');
+						$(this).children().click(function(e) {
+							e.stopPropagation();
+						});
+						$(this).find('button').click(function() {
+							var val = $(this).next().val();
+							var data = $(this).parents('.job').data('job');
+							$(this).parent().html('Interval: ' + val);
 							$.ajax({
-								url: '/jobs/' + $(this).parent().data('job'),
-								type: 'DELETE'
-							}).done(function() {
-								getjobs();
+								url: './jobs/' + data + '/when/' + val,
+								type: 'PUT'
+							}).done(function(html) {
+								$('#jobs').html(html);
+								jobbuttons();
 							});
 						});
 					});
 				}
-				getjobs();
+				$.get('./jobs', function (html) {
+					$('#jobs').html(html);
+					jobbuttons();
+				});
 				$('#start').click(function() {
 					$.ajax({
-						url: '/jobs/start',
+						url: './jobs/all/start',
 						type: 'PUT'
-					}).done(function() {
-						getjobs();
+					}).done(function(html) {
+						$('#jobs').html(html);
+						jobbuttons();
 					});
 				});
 				$('#pause').click(function() {
 					$.ajax({
-						url: '/jobs/pause',
+						url: './jobs/all/pause',
 						type: 'PUT'
-					}).done(function() {
-						getjobs();
+					}).done(function(html) {
+						$('#jobs').html(html);
+						jobbuttons();
 					});
 				});
 				$('#clear').click(function() {
 					$.ajax({
-						url: '/jobs',
+						url: './jobs',
 						type: 'DELETE'
-					}).done(function() {
-						getjobs();
+					}).done(function(html) {
+						$('#jobs').html(html);
+						jobbuttons();
 					});
 				});
 			});

@@ -69,9 +69,9 @@ print(s.next_run_times())
   - [ ] Add option for a waiting time before the next function call after an exception
   - [ ] Add option for the number of retrys after exceptions
   - [ ] Add the option to execute a different function upon an exception
-- [ ] A web front end; probably with CherryPy
-  - [ ] Be able to see the scheduled jobs
-  - [ ] Control jobs; pause, remove, reschedule
-- [ ] Expand the abilities of the custom datetime string parser in case dateutil cannot be used
+- [x] A web front end; probably with CherryPy
+  - [x] Be able to see the scheduled jobs
+  - [x] Control jobs; pause, start back up, remove, reschedule
+- [x] Expand the abilities of the custom datetime string parser in case dateutil cannot be used
 - [x] Add stop and start methods to scheduler
 - [x] Add some kind of logging for executed tasks
