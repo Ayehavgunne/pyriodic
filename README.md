@@ -22,6 +22,8 @@ Pyriodic can be installed and used on it's own but if tasks need to be scheduled
 
 If dateutil is already installed then it will be used automatically.
 
+For the web front end to work CherryPy must be installed but it is entirely optional to use.
+
 ---
 
 ##Usage
@@ -69,7 +71,7 @@ print(s.next_run_times())
   - [ ] Add option for a waiting time before the next function call after an exception
   - [ ] Add option for the number of retrys after exceptions
   - [ ] Add the option to execute a different function upon an exception
-- [x] A web front end; probably with CherryPy
+- [x] A web front end using CherryPy
   - [x] Be able to see the scheduled jobs
   - [x] Control jobs; pause, start back up, remove, reschedule
 - [x] Expand the abilities of the custom datetime string parser in case dateutil cannot be used
