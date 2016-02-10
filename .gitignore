@@ -193,8 +193,6 @@ $RECYCLE.BIN/
 
 *.py[co]
 README.rst
-MANIFEST
-*.in
 CHANGES
 
 # Packages
