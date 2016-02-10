@@ -67,6 +67,12 @@ print(s.next_run_times())
 - [ ] Add tests
 - [ ] Add docstrings
 - [ ] Add ability to schedule jobs with decorators
+- [ ] Expand capabilities of a datetime scheduled task
+  - [x] Allow daily tasks
+  - [ ] Allow tasks to run on specific days, example: tuesday, thursday and friday only at noon
+  - [ ] Allow weekly tasks
+  - [ ] Allow monthly tasks
+  - [ ] Allow yearly tasks
 - [ ] Add options for error handling
   - [ ] Add option for a waiting time before the next function call after an exception
   - [ ] Add option for the number of retrys after exceptions

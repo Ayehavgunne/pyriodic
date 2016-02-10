@@ -7,10 +7,13 @@ class Scheduler(object):
 	def __init__(self, log=None):
 		self.jobs = []
 		self.current_job = None
-		self.current_job_thread = None
 		self.sleeper = None
 		self.running = False
-		self.log = log
+		if log:
+			self.log = log
+		else:
+			import logging
+			self.log = logging.getLogger('pyriodic_dummy')
 
 	def set_timer(self):
 		if self.jobs:
@@ -37,8 +40,7 @@ class Scheduler(object):
 				self.current_job.thread.start()
 			else:
 				job_func_wrapper(self.current_job)
-			if self.log:
-				self.log.info('Job "{}" was started. Run count = {}'.format(self.current_job.name, self.current_job.run_count))
+			self.log.info('Job "{}" was started. Run count = {}'.format(self.current_job.name, self.current_job.run_count))
 			self.current_job.add_run_time(now())
 			self.current_job.scheduled = False
 			self.current_job = None
