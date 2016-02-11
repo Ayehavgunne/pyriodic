@@ -1,16 +1,18 @@
 from calendar import isleap
+from collections import OrderedDict
 from abc import ABCMeta
 from abc import abstractclassmethod
+from datetime import datetime
 from datetime import timedelta
 from pyriodic import parse
 from . import now
 
-intvl = {
-	'weekly': ('monday', 'mon', 'mo', 'm', 'tuesday', 'tue', 'tu', 'wednesday', 'wed', 'we', 'w', 'thursday', 'thu', 'th', 'friday', 'fri', 'fr', 'saturday', 'sat', 'sa', 'sunday', 'sun', 'su'),
-	'yearly': ('january', 'jan', 'ja', 'february', 'feb', 'fe', 'march', 'mar', 'april', 'apr', 'ap' 'may', 'june', 'jun', 'july', 'jul', 'august', 'aug', 'au', 'september', 'sep', 'se', 'october', 'oct', 'oc', 'november', 'nov', 'no', 'december', 'dec', 'de')
-}
+intvl = OrderedDict()
+intvl['yearly'] = ('january', 'jan', 'ja', 'february', 'feb', 'fe', 'march', 'mar', 'april', 'apr', 'ap' 'may', 'june', 'jun', 'july', 'jul', 'august', 'aug', 'au', 'september', 'sep', 'se', 'october', 'oct', 'oc', 'november', 'nov', 'no', 'december', 'dec', 'de')
+intvl['monthly'] = ('st', 'th', 'rd', 'nd')
+intvl['weekly'] = ('monday', 'mon', 'mo', 'tuesday', 'tue', 'tu', 'wednesday', 'wed', 'we', 'thursday', 'thu', 'th', 'friday', 'fri', 'fr', 'saturday', 'sat', 'sa', 'sunday', 'sun', 'su')
 
-days_in_month = {'ja': 31, 'fe': 28, 'mar': 31, 'ap': 30, 'may': 31, 'jun': 30, 'jul': 31, 'au': 31, 'se': 30, 'oc': 31, 'no': 30, 'de': 31}
+days_in_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
 days_in_year = 365
 days_in_week = 7
 
@@ -74,24 +76,32 @@ class DatetimeJob(Job):
 	def __init__(self, func, when, args=None, kwargs=None, repeating=True, name=None, threaded=True, custom_format=None, interval=None):
 		if not isinstance(when, str):
 			raise TypeError('Argument \'when\' must be a string object, not {}'.format(type(when)))
+		super().__init__(func, when, args, kwargs, name, repeating, threaded)
+		self.custom_format = custom_format
 		if interval is None:
 			for key, val in intvl.items():
 				for itm in val:
-					if itm in when:
+					if itm in when.lower():
 						self.interval = key
-						break
-		super().__init__(func, when, args, kwargs, name, repeating, threaded)
-		self.custom_format = custom_format
+						return
+			self.interval = 'daily'
+		else:
+			self.interval = interval
 
 	def next_run_time(self):
 		when = parse.datetime(self.when, self.custom_format)
 		while not self.is_in_future(when):
-			if self.interval == 'weekly':
+			if self.interval == 'daily':
+				when = when + timedelta(days=1)
+			elif self.interval == 'weekly':
 				when = when + timedelta(days=days_in_week)
 			elif self.interval == 'monthly':
-				when = when + timedelta(days=31)
+				if now().month == 2 and isleap(now().year):
+					when = when + timedelta(days=days_in_month[2] + 1)
+				else:
+					when = when + timedelta(days=days_in_month[now().month])
 			elif self.interval == 'yearly':
-				if isleap(now().year):
+				if isleap(now().year) and self.is_in_future(datetime(year=now().year, month=2, day=29)):
 					when = when + timedelta(days=days_in_year + 1)
 				else:
 					when = when + timedelta(days=days_in_year)
