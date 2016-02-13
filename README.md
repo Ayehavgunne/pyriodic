@@ -67,7 +67,7 @@ print(s.next_run_times())
 - [ ] Add tests
 - [ ] Add docstrings
 - [ ] Add ability to schedule jobs with decorators
-- [ ] Expand types of scheduled tasks
+- [x] Expand types of scheduled tasks
   - [x] Allow daily tasks
   - [x] Allow tasks to run on specific days, example: every tuesday, thursday and saturday or 1st and 15th of the month
   - [x] Every nth day
