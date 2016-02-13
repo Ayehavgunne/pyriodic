@@ -116,14 +116,12 @@ class Scheduler(object):
 			if self.current_job == job:
 				self.reset()
 
-	def start_lone_web_server(self, port=8765):
+	def start_web_server(self, existing=False, port=8765):
 		import cherrypy
 		start_web_interface(self)
-		cherrypy.config.update({'server.socket_port': port, 'engine.autoreload.on': False})
-		cherrypy.engine.start()
-
-	def start_existing_web_server(self):
-		start_web_interface(self)
+		if existing:
+			cherrypy.config.update({'server.socket_port': port, 'engine.autoreload.on': False})
+			cherrypy.engine.start()
 
 def job_func_wrapper(job):
 	job.status = 'running'
