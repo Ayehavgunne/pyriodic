@@ -1,4 +1,4 @@
-__version__ = '0.0.3'
+__version__ = '0.0.6'
 
 from datetime import datetime
 
@@ -9,4 +9,3 @@ from pyriodic.scheduler import Scheduler
 from pyriodic.jobs import DurationJob
 from pyriodic.jobs import DatetimeJob
 from pyriodic.jobs import DatetimesJob
-from pyriodic.jobs import NthDayJob

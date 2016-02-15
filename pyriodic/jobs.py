@@ -18,7 +18,7 @@ days_in_year = 365
 days_in_week = 7
 
 class Job(metaclass=ABCMeta):
-	def __init__(self, func, when, args, kwargs, name=None, repeating=True, threaded=True):
+	def __init__(self, func, when, args=None, kwargs=None, name=None, repeating=True, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None):
 		self.func = func
 		self.when = when
 		self.args = args
@@ -26,11 +26,17 @@ class Job(metaclass=ABCMeta):
 		self.repeating = repeating
 		self.name = name
 		self.run_time_history = []
-		self.scheduled = False
 		self.status = 'waiting'
 		self.threaded = threaded
 		self.thread = None
+		self.ignore_exceptions = ignore_exceptions
+		self.parent = None
+		self.exceptions = []
+		self.retrys = retrys
+		self.retry_time = retry_time
+		self.alt_func = alt_func
 
+	@property
 	@abstractclassmethod
 	def next_run_time(self):
 		pass
@@ -52,41 +58,74 @@ class Job(metaclass=ABCMeta):
 	def run_count(self):
 		return len(self.run_time_history)
 
+	def start(self):
+		self.status = 'waiting'
+		if self.parent:
+			self.parent.reset()
+
+	def is_waiting(self):
+		return self.status == 'waiting'
+
+	def wait(self):
+		self.status = 'waiting'
+
+	def pause(self):
+		self.status = 'paused'
+		if self.parent:
+			self.parent.reset()
+
+	def is_paused(self):
+		return self.status == 'paused'
+
+	def run(self):
+		self.status = 'running'
+
+	def is_running(self):
+		return self.status == 'running'
+
+	@staticmethod
+	def is_in_future(when):
+		return (when - now()).total_seconds() > 0
+
 	def __repr__(self):
 		return '{}({}, \'{}\', name=\'{}\')'.format(self.__class__.__name__, self.func.__name__, self.when, self.name)
 
 class DurationJob(Job):
-	def __init__(self, func, when, start=None, args=None, kwargs=None, name=None, repeating=True, threaded=True):
+	def __init__(self, func, when, *argums, start_time=None, args=None, kwargs=None, name=None, repeating=True, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, **keyargs):
 		if not isinstance(when, (str, timedelta)):
 			raise TypeError('Argument \'when\' must be either a string or timedelta object, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, name, repeating, threaded)
-		if isinstance(start, str):
-			self.start = parse.datetime(start)
-		elif not isinstance(start, datetime) or start is None:
-			self.start = start
+		super().__init__(func, when, args, kwargs, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func)
+		if isinstance(start_time, str):
+			self.start_time = parse.datetime(start_time)
+		elif not isinstance(start_time, datetime) or start_time is None:
+			self.start_time = start_time
 		else:
 			raise TypeError('Argument \'start\' must be a datetime object, not {}'.format(type(when)))
 
+	@property
 	def next_run_time(self):
-		if not self.first_run_time:
-			if self.start:
-				return self.start
-			else:
+		if self.is_paused():
+			return
+		else:
+			if not self.first_run_time:
+				if self.start_time:
+					if self.is_in_future(self.start_time):
+						return self.start_time
 				if isinstance(self.when, str):
 					return now() + parse.duration(self.when)
 				else:
 					return now() + self.when
-		else:
-			if isinstance(self.when, str):
-				return self.last_run_time + parse.duration(self.when)
 			else:
-				return self.last_run_time + self.when
+				if isinstance(self.when, str):
+					return self.last_run_time + parse.duration(self.when)
+				else:
+					return self.last_run_time + self.when
 
 class DatetimeJob(Job):
-	def __init__(self, func, when, interval=None, args=None, kwargs=None, name=None, repeating=True, threaded=True, custom_format=None):
+	def __init__(self, func, when, *argums, interval=None, args=None, kwargs=None, name=None, repeating=True, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
 		if not isinstance(when, str):
 			raise TypeError('Argument \'when\' must be a string, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, name, repeating, threaded)
+		super().__init__(func, when, args, kwargs, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func)
 		self.custom_format = custom_format
 		if interval is None:
 			for key, val in intvl.items():
@@ -98,8 +137,12 @@ class DatetimeJob(Job):
 		else:
 			self.interval = interval
 
+	@property
 	def next_run_time(self):
-		return self.increment(parse.datetime(self.when, self.custom_format))
+		if self.is_paused():
+			return
+		else:
+			return self.increment(parse.datetime(self.when, self.custom_format))
 
 	def increment(self, when):
 		while not self.is_in_future(when):
@@ -119,45 +162,22 @@ class DatetimeJob(Job):
 					when = when + timedelta(days=days_in_year)
 		return when
 
-	@staticmethod
-	def is_in_future(when):
-		return (when - now()).total_seconds() > 0
-
-class NthDayJob(Job):
-	def __init__(self, func, when, start=None, args=None, kwargs=None, repeating=True, name=None, threaded=True):
-		if isinstance(when, str):
-			when = int(when)
-		elif not isinstance(when, int):
-			raise TypeError('Argument \'when\' must be a string or integer, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, name, repeating, threaded)
-		if isinstance(start, str):
-			self.start = parse.datetime(start)
-		elif not isinstance(start, datetime) or start is None:
-			self.start = start
-		else:
-			raise TypeError('Argument \'start\' must be a datetime object, not {}'.format(type(when)))
-
-	def next_run_time(self):
-		if not self.first_run_time:
-			if self.start:
-				return self.start
-			else:
-				return now().replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=self.when)
-		else:
-			return self.last_run_time + timedelta(days=self.when)
-
 class DatetimesJob(DatetimeJob):
-	def __init__(self, func, when, interval, args=None, kwargs=None, repeating=True, name=None, threaded=True):
-		super().__init__(func, when, interval, args, kwargs, name, repeating, threaded)
-		self.queue = deque([parse.datetime(dt.rstrip(' ').lstrip(' ')) for dt in when.split(',')])
+	def __init__(self, func, when, interval, *argums, args=None, kwargs=None, repeating=True, name=None, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
+		super().__init__(func, when, interval, args, kwargs, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func, custom_format)
+		self.queue = deque([parse.datetime(dt.rstrip(' ').lstrip(' '), custom_format) for dt in when.split(',')])
 
+	@property
 	def next_run_time(self):
-		x = len(self.queue)
-		while x > 0 and not self.is_in_future(self.queue[0]):
-			x -= 1
-			self.queue.rotate()
-		if self.last_run_time == self.queue[0]:
-			self.queue.rotate()
-		next_runtime = self.increment(self.queue[0])
-		self.queue[0] = next_runtime
-		return next_runtime
+		if self.is_paused():
+			return
+		else:
+			x = len(self.queue)
+			while x > 0 and not self.is_in_future(self.queue[0]):
+				x -= 1
+				self.queue.rotate()
+			if self.last_run_time == self.queue[0]:
+				self.queue.rotate()
+			next_runtime = self.increment(self.queue[0])
+			self.queue[0] = next_runtime
+			return next_runtime

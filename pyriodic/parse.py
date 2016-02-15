@@ -4,6 +4,8 @@ from datetime import datetime as dt
 
 def duration(duration_string):#I hate regex even though I should be using it here
 	duration_string = duration_string.lower()
+	if 'd' not in duration_string and 'h' not in duration_string and 'm' not in duration_string and 's' not in duration_string:
+		raise ValueError('There were no duration multiplyer characters ("d", "h", "m", or "s") provided in "{}"'.format(duration_string))
 	total_seconds = Decimal('0')
 	prev_num = []
 	for character in duration_string:
@@ -26,7 +28,7 @@ def duration(duration_string):#I hate regex even though I should be using it her
 			prev_num.append(character)
 	return timedelta(seconds=int(total_seconds))
 
-def datetime(datetime_string, cust_format=None):
+def datetime(datetime_string, custom_format=None):
 	try:
 		# noinspection PyUnresolvedReferences
 		from dateutil.parser import parser
@@ -34,8 +36,8 @@ def datetime(datetime_string, cust_format=None):
 	except ImportError:
 		datetime_string = datetime_string.replace('/', '-')
 		formats = ['%Y', '%Y-%m', '%Y-%m-%d', '%Y-%m-%d %H', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %I:%M:%S %p']
-		if cust_format:
-			formats.insert(0, cust_format)
+		if custom_format:
+			formats.insert(0, custom_format)
 		for f in formats:
 			try:
 				t = dt.strptime(datetime_string, f)

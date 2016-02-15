@@ -3,26 +3,10 @@ import sys
 from setuptools import setup
 from setuptools import find_packages
 
-version = '0.0.5'
+version = __import__('pyriodic').__version__
 
-long_description = '''
-====
-Pyriodic
-====
-
-A job scheduler written in Python to run periodic tasks.
-This project was just started and is in the alpha stage so there is a lot yet to do.
-Go to http://ayehavgunne.github.io/pyriodic/ for more information.
-'''
-if os.path.exists('README.rst'):
-	with open('README.rst', 'r') as text:
-		long_description = text.read()
-
-bsd_license = 'Simplified BSD'
-
-if os.path.exists('LICENSE'):
-	with open('LICENSE', 'r') as text:
-		bsd_license = text.read()
+def read(fname):
+	return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name='pyriodic',
@@ -34,9 +18,9 @@ setup(
 	url='http://ayehavgunne.github.io/pyriodic/',
 	download_url='http://ayehavgunne.github.io/pyriodic/',
 	description='A job scheduler written in Python to run periodic tasks.',
-	long_description=long_description,
+	long_description=read('README.md'),
 	packages=find_packages(),
-	license=bsd_license,
+	license=read('LICENSE'),
 	keywords='schedule scheduler periodic job task time timer thread calendar clock queue',
 	classifiers=[
 		'Development Status :: 3 - Alpha',

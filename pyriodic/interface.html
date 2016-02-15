@@ -78,7 +78,7 @@
 				function jobbuttons() {
 					$('.start').unbind('click').click(function () {
 						$.ajax({
-							url: './jobs/start/' + $(this).parent().data('job'),
+							url: './jobs/' + $(this).parent().data('job') + '/start',
 							type: 'PUT'
 						}).done(function(html) {
 							$('#jobs').html(html);
@@ -87,7 +87,7 @@
 					});
 					$('.pause').unbind('click').click(function () {
 						$.ajax({
-							url: './jobs/pause/' + $(this).parent().data('job'),
+							url: './jobs/' + $(this).parent().data('job') + '/pause',
 							type: 'PUT'
 						}).done(function(html) {
 							$('#jobs').html(html);

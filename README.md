@@ -66,21 +66,22 @@ print(s.next_run_times())
 - [ ] Add timezone awareness
 - [ ] Add tests
 - [ ] Add docstrings
-- [ ] Add ability to schedule jobs with decorators
-- [ ] Expand types of scheduled tasks
+- [x] Add ability to schedule jobs with decorators
+- [x] Expand types of scheduled tasks
   - [x] Allow daily tasks
   - [x] Allow tasks to run on specific days, example: every tuesday, thursday and saturday or 1st and 15th of the month
   - [x] Every nth day
   - [x] Allow weekly tasks
   - [x] Allow monthly tasks
   - [x] Allow yearly tasks
-- [ ] Add options for error handling
-  - [ ] Add option for a waiting time before the next function call after an exception
-  - [ ] Add option for the number of retrys after exceptions
-  - [ ] Add the option to execute a different function upon an exception
+- [x] Add options for error handling
+  - [x] Add option for a waiting time before the next function call after an exception
+  - [x] Add option for the number of retrys after exceptions
+  - [x] Add the option to execute a different function upon an exception
 - [x] A web front end using CherryPy
   - [x] Be able to see the scheduled jobs
   - [x] Control jobs; pause, start back up, remove, reschedule
 - [x] Expand the abilities of the custom datetime string parser in case dateutil cannot be used
 - [x] Add stop and start methods to scheduler
 - [x] Add some kind of logging for executed tasks
+- [ ] Add some backend storage options
