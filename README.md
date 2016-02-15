@@ -69,11 +69,10 @@ print(s.next_run_times())
 - [x] Add ability to schedule jobs with decorators
 - [x] Expand types of scheduled tasks
   - [x] Allow daily tasks
-  - [x] Allow tasks to run on specific days, example: every tuesday, thursday and saturday or 1st and 15th of the month
-  - [x] Every nth day
   - [x] Allow weekly tasks
   - [x] Allow monthly tasks
   - [x] Allow yearly tasks
+  - [x] Allow tasks to run on specific days, example: every tuesday, thursday and saturday or 1st and 15th of the month
 - [x] Add options for error handling
   - [x] Add option for a waiting time before the next function call after an exception
   - [x] Add option for the number of retrys after exceptions
