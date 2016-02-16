@@ -5,7 +5,9 @@ except ImportError:
 	cherrypy = None
 
 def start_web_interface(scheduler):
-	if cherrypy:
+	if cherrypy is None:
+		raise TypeError('The web interface requires that CherryPy be installed')
+	else:
 		# noinspection PyPep8Naming
 		class Jobs(object):
 			exposed = True

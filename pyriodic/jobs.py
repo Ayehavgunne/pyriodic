@@ -96,7 +96,7 @@ class DurationJob(Job):
 			raise TypeError('Argument \'when\' must be either a string or timedelta object, not {}'.format(type(when)))
 		super().__init__(func, when, args, kwargs, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func)
 		if isinstance(start_time, str):
-			self.start_time = parse.datetime(start_time)
+			self.start_time = parse.datetime_string(start_time)
 		elif not isinstance(start_time, datetime) or start_time is None:
 			self.start_time = start_time
 		else:
@@ -112,12 +112,12 @@ class DurationJob(Job):
 					if self.is_in_future(self.start_time):
 						return self.start_time
 				if isinstance(self.when, str):
-					return now() + parse.duration(self.when)
+					return now() + parse.duration_string(self.when)
 				else:
 					return now() + self.when
 			else:
 				if isinstance(self.when, str):
-					return self.last_run_time + parse.duration(self.when)
+					return self.last_run_time + parse.duration_string(self.when)
 				else:
 					return self.last_run_time + self.when
 
@@ -142,7 +142,7 @@ class DatetimeJob(Job):
 		if self.is_paused():
 			return
 		else:
-			return self.increment(parse.datetime(self.when, self.custom_format))
+			return self.increment(parse.datetime_string(self.when, self.custom_format))
 
 	def increment(self, when):
 		while not self.is_in_future(when):
@@ -165,7 +165,7 @@ class DatetimeJob(Job):
 class DatetimesJob(DatetimeJob):
 	def __init__(self, func, when, interval, *argums, args=None, kwargs=None, repeating=True, name=None, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
 		super().__init__(func, when, interval, args, kwargs, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func, custom_format)
-		self.queue = deque([parse.datetime(dt.rstrip(' ').lstrip(' '), custom_format) for dt in when.split(',')])
+		self.queue = deque([parse.datetime_string(dt.rstrip(' ').lstrip(' '), custom_format) for dt in when.split(',')])
 
 	@property
 	def next_run_time(self):
