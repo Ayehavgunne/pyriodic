@@ -69,6 +69,7 @@ print(s.next_run_times())
 - [ ] Format for PEP8 compatibility
 - [ ] Add Python 2.7 compatibility
 	- [ ] Use Six?
+- [ ] Add type hints
 - [x] Add ability to schedule jobs with decorators
 - [x] Expand types of scheduled tasks
   - [x] Allow daily tasks
