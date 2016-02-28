@@ -71,7 +71,7 @@ print(s.next_run_times())
 - [ ] Add timezone awareness
 - [ ] Add tests
 - [ ] Add docstrings
-- [ ] Format for PEP8 compatibility
+- [x] Format for PEP8 compliance
 - [ ] Add Python 2.7 compatibility
     - [ ] Use Six?
 - [ ] Add type hints
