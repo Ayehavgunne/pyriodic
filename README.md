@@ -75,6 +75,7 @@ print(s.next_run_times())
 - [ ] Add Python 2.7 compatibility
     - [ ] Use Six?
 - [ ] Add type hints
+- [ ] Add 'pause till' functionality
 - [x] Add ability to schedule jobs with decorators
 - [x] Expand types of scheduled tasks
     - [x] Allow daily tasks
