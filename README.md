@@ -87,7 +87,7 @@ print(s.next_run_times())
         - [x] 1st and 15th of the month
 - [x] Add options for error handling
     - [x] Add option for a waiting time before the next function call
-        after an exception
+            after an exception
     - [x] Add option for the number of retrys after exceptions
     - [x] Add option to execute a different function upon an exception
 - [x] A web front end using CherryPy
