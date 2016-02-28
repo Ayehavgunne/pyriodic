@@ -8,17 +8,28 @@ from datetime import timedelta
 from pyriodic import parse
 from . import now
 
+
 intvl = OrderedDict()
-intvl['yearly'] = ('january', 'jan', 'ja', 'february', 'feb', 'fe', 'march', 'mar', 'april', 'apr', 'ap' 'may', 'june', 'jun', 'july', 'jul', 'august', 'aug', 'au', 'september', 'sep', 'se', 'october', 'oct', 'oc', 'november', 'nov', 'no', 'december', 'dec', 'de')
+intvl['yearly'] = (
+	'january', 'jan', 'ja', 'february', 'feb', 'fe', 'march', 'mar', 'april', 'apr', 'ap' 'may', 'june', 'jun', 'july',
+	'jul', 'august', 'aug', 'au', 'september', 'sep', 'se', 'october', 'oct', 'oc', 'november', 'nov', 'no',
+	'december',
+	'dec', 'de'
+)
 intvl['monthly'] = ('st', 'th', 'rd', 'nd')
-intvl['weekly'] = ('monday', 'mon', 'mo', 'tuesday', 'tue', 'tu', 'wednesday', 'wed', 'we', 'thursday', 'thu', 'th', 'friday', 'fri', 'fr', 'saturday', 'sat', 'sa', 'sunday', 'sun', 'su')
+intvl['weekly'] = (
+	'monday', 'mon', 'mo', 'tuesday', 'tue', 'tu', 'wednesday', 'wed', 'we', 'thursday', 'thu', 'th', 'friday', 'fri',
+	'fr', 'saturday', 'sat', 'sa', 'sunday', 'sun', 'su'
+)
 
 days_in_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
 days_in_year = 365
 days_in_week = 7
 
+
 class Job(metaclass=ABCMeta):
-	def __init__(self, func, when, args=None, kwargs=None, name=None, repeating=True, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None):
+	def __init__(self, func, when, args=None, kwargs=None, name=None, repeating=True,
+			threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None):
 		self.func = func
 		self.when = when
 		self.args = args
@@ -90,17 +101,22 @@ class Job(metaclass=ABCMeta):
 	def __repr__(self):
 		return '{}({}, \'{}\', name=\'{}\')'.format(self.__class__.__name__, self.func.__name__, self.when, self.name)
 
+
 class DurationJob(Job):
-	def __init__(self, func, when, *argums, start_time=None, args=None, kwargs=None, name=None, repeating=True, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, **keyargs):
+	# noinspection PyUnusedLocal
+	def __init__(self, func, when, *argums, start_time=None, args=None, kwargs=None, name=None, repeating=True,
+			threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, **keyargs):
 		if not isinstance(when, (str, timedelta)):
 			raise TypeError('Argument \'when\' must be either a string or timedelta object, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func)
+		super().__init__(func, when, args, kwargs, name, repeating,
+			threaded, ignore_exceptions, retrys, retry_time, alt_func)
 		if isinstance(start_time, str):
 			self.start_time = parse.datetime_string(start_time)
 		elif not isinstance(start_time, datetime) or start_time is None:
 			self.start_time = start_time
 		else:
 			raise TypeError('Argument \'start\' must be a datetime object, not {}'.format(type(when)))
+		self.time_initialized = now()
 
 	@property
 	def next_run_time(self):
@@ -112,20 +128,25 @@ class DurationJob(Job):
 					if self.is_in_future(self.start_time):
 						return self.start_time
 				if isinstance(self.when, str):
-					return now() + parse.duration_string(self.when)
+					return self.time_initialized + parse.duration_string(self.when)
 				else:
-					return now() + self.when
+					return self.time_initialized + self.when
 			else:
 				if isinstance(self.when, str):
 					return self.last_run_time + parse.duration_string(self.when)
 				else:
 					return self.last_run_time + self.when
 
+
 class DatetimeJob(Job):
-	def __init__(self, func, when, *argums, interval=None, args=None, kwargs=None, name=None, repeating=True, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
+	# noinspection PyUnusedLocal
+	def __init__(self, func, when, *argums, interval=None, args=None, kwargs=None,
+			name=None, repeating=True, threaded=True, ignore_exceptions=False,
+			retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
 		if not isinstance(when, str):
 			raise TypeError('Argument \'when\' must be a string, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func)
+		super().__init__(func, when, args, kwargs, name, repeating,
+			threaded, ignore_exceptions, retrys, retry_time, alt_func)
 		self.custom_format = custom_format
 		if interval is None:
 			for key, val in intvl.items():
@@ -162,9 +183,13 @@ class DatetimeJob(Job):
 					when = when + timedelta(days=days_in_year)
 		return when
 
+
 class DatetimesJob(DatetimeJob):
-	def __init__(self, func, when, interval, *argums, args=None, kwargs=None, repeating=True, name=None, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
-		super().__init__(func, when, interval, args, kwargs, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func, custom_format)
+	# noinspection PyUnusedLocal
+	def __init__(self, func, when, interval, *argums, args=None, kwargs=None, repeating=True, name=None, threaded=True,
+			ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
+		super().__init__(func, when, interval, args, kwargs, name, repeating,
+			threaded, ignore_exceptions, retrys, retry_time, alt_func, custom_format)
 		self.queue = deque([parse.datetime_string(dt.rstrip(' ').lstrip(' '), custom_format) for dt in when.split(',')])
 
 	@property

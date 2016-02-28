@@ -18,11 +18,14 @@ pip install pyriodic
 
 ##Dependencies
 
-Pyriodic can be installed and used on it's own but if tasks need to be scheduled at a specific date/time then the module dateutil is invaluble. Without it acceptable datetime strings are rather limited.
+Pyriodic can be installed and used on it's own but if tasks need to be
+scheduled at a specific date/time then the module dateutil is invaluble.
+Without it acceptable datetime strings are rather limited.
 
 If dateutil is already installed then it will be used automatically.
 
-For the web front end to work CherryPy must be installed but it is entirely optional to use.
+For the web front end to work CherryPy must be installed but it is
+entirely optional to use.
 
 ---
 
@@ -39,19 +42,21 @@ s = Scheduler()
 start = now()
 
 def func1(arg1=None, arg2=None, arg3=None, arg4=None):
-	print('Func1', arg1, arg2, arg3, arg4, now() - start, now())
+    print('Func1', arg1, arg2, arg3, arg4, now() - start, now())
 
 def func2():
-	print('Func2', now() - start, now())
+    print('Func2', now() - start, now())
 
 def func3():
-	print('Func3', now() - start, now())
+    print('Func3', now() - start, now())
 
-s.add_job(DurationJob(func1,
-                    when='30m',
-                    args=('This', 'is'),
-                    kwargs={'arg3': 'the', 'arg4': 'first function'},
-                    name='MyJob'))
+s.add_job(DurationJob(
+    func1,
+    when='30m',
+    args=('This', 'is'),
+    kwargs={'arg3': 'the', 'arg4': 'first function'},
+    name='MyJob'
+))
 s.add_job(DurationJob(func2, when='2h'))
 s.add_job(DatetimeJob(func3, when='12:00 pm'))
 
@@ -68,22 +73,27 @@ print(s.next_run_times())
 - [ ] Add docstrings
 - [ ] Format for PEP8 compatibility
 - [ ] Add Python 2.7 compatibility
-	- [ ] Use Six?
+    - [ ] Use Six?
+- [ ] Add type hints
 - [x] Add ability to schedule jobs with decorators
 - [x] Expand types of scheduled tasks
-  - [x] Allow daily tasks
-  - [x] Allow weekly tasks
-  - [x] Allow monthly tasks
-  - [x] Allow yearly tasks
-  - [x] Allow tasks to run on specific days, example: every tuesday, thursday and saturday or 1st and 15th of the month
+    - [x] Allow daily tasks
+    - [x] Allow weekly tasks
+    - [x] Allow monthly tasks
+    - [x] Allow yearly tasks
+    - [x] Allow tasks to run on specific days, example:
+        - [x] every tuesday, thursday and saturday
+        - [x] 1st and 15th of the month
 - [x] Add options for error handling
-  - [x] Add option for a waiting time before the next function call after an exception
-  - [x] Add option for the number of retrys after exceptions
-  - [x] Add the option to execute a different function upon an exception
+    - [x] Add option for a waiting time before the next function call
+        after an exception
+    - [x] Add option for the number of retrys after exceptions
+    - [x] Add option to execute a different function upon an exception
 - [x] A web front end using CherryPy
-  - [x] Be able to see the scheduled jobs
-  - [x] Control jobs; pause, start back up, remove, reschedule
-- [x] Expand the abilities of the custom datetime string parser in case dateutil cannot be used
+    - [x] Be able to see the scheduled jobs
+    - [x] Control jobs; pause, start back up, remove, reschedule
+- [x] Expand the abilities of the custom datetime string parser in case
+        dateutil cannot be used
 - [x] Add stop and start methods to scheduler
 - [x] Add some kind of logging for executed tasks
 - [ ] Add some backend storage options

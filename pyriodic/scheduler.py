@@ -5,6 +5,7 @@ from threading import Thread
 from . import now
 from . import start_web_interface
 
+
 class Scheduler(object):
 	def __init__(self, log=None):
 		self.jobs = []
@@ -38,7 +39,8 @@ class Scheduler(object):
 		if self.current_job:
 			if not self.current_job.is_paused():
 				if self.current_job.threaded:
-					self.current_job.thread = Thread(target=job_func_wrapper, args=(self.current_job, self.log, self.current_job.retrys))
+					self.current_job.thread = Thread(target=job_func_wrapper,
+						args=(self.current_job, self.log, self.current_job.retrys))
 					self.current_job.thread.start()
 				else:
 					job_func_wrapper(self.current_job, self.log, self.current_job.retrys)
@@ -61,10 +63,15 @@ class Scheduler(object):
 		self.set_timer()
 		return job.name
 
-	def schedule_job(self, job_type, when, args=None, kwargs=None, name=None, repeating=True, threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, start_time=None, interval=None, custom_format=None):
+	def schedule_job(self, job_type, when, args=None, kwargs=None, name=None, repeating=True, threaded=True,
+			ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, start_time=None, interval=None,
+			custom_format=None):
 		def inner(func):
-			self.add_job(job_type(func=func, when=when, args=args, kwargs=kwargs, name=name, repeating=repeating, threaded=threaded, ignore_exceptions=ignore_exceptions, retrys=retrys, retry_time=retry_time, alt_func=alt_func, start_time=start_time, interval=interval, custom_format=custom_format))
+			self.add_job(job_type(func=func, when=when, args=args, kwargs=kwargs, name=name, repeating=repeating,
+				threaded=threaded, ignore_exceptions=ignore_exceptions, retrys=retrys, retry_time=retry_time,
+				alt_func=alt_func, start_time=start_time, interval=interval, custom_format=custom_format))
 			return func
+
 		return inner
 
 	def trim_jobs(self):
@@ -128,6 +135,7 @@ class Scheduler(object):
 			cherrypy.config.update({'server.socket_port': port, 'engine.autoreload.on': False})
 			cherrypy.engine.start()
 
+
 def job_func_wrapper(job, log, retrys, alt=False):
 	job.run()
 	args = job.args
@@ -156,7 +164,7 @@ def job_func_wrapper(job, log, retrys, alt=False):
 		job.wait()
 	except Exception as e:
 		job.exceptions.append((e, job.run_count))
-		log.info('Job "{}" enountered an exception ({})'.format(job.name, e))
+		log.info('Job "{}" enountered an exception ({}). Run count = {}'.format(job.name, e, job.run_count))
 		if retrys:
 			if job.retry_time:
 				job.pause()

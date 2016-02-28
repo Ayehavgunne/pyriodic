@@ -3,13 +3,16 @@ import sys
 from setuptools import setup
 from setuptools import find_packages
 
+
 version = __import__('pyriodic').__version__
+
 
 def read(fname):
 	return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
 setup(
-    name='pyriodic',
+	name='pyriodic',
 	version=version,
 	author='Anthony Post',
 	author_email='postanthony3000@gmail.com',

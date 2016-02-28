@@ -2,10 +2,13 @@ from decimal import Decimal
 from datetime import timedelta
 from datetime import datetime
 
-def duration_string(string):#I hate regex even though I should be using it here
+
+def duration_string(string):  # I hate regex even though I should be using it here
 	string = string.lower()
 	if 'd' not in string and 'h' not in string and 'm' not in string and 's' not in string:
-		raise ValueError('There were no duration multiplyer characters ("d", "h", "m", or "s") provided in "{}"'.format(string))
+		raise ValueError(
+			'There were no duration multiplyer characters ("d", "h", "m", or "s") provided in "{}"'.format(string)
+		)
 	total_seconds = Decimal('0')
 	prev_num = []
 	for character in string:
@@ -28,6 +31,7 @@ def duration_string(string):#I hate regex even though I should be using it here
 			prev_num.append(character)
 	return timedelta(seconds=int(total_seconds))
 
+
 def datetime_string(string, custom_format=None):
 	try:
 		# noinspection PyUnresolvedReferences
@@ -35,7 +39,14 @@ def datetime_string(string, custom_format=None):
 		return parser().parse(string)
 	except ImportError:
 		string = string.replace('/', '-')
-		formats = ['%Y', '%Y-%m', '%Y-%m-%d', '%Y-%m-%d %H', '%Y-%m-%d %H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %I:%M:%S %p']
+		formats = [
+			'%Y', '%Y-%m',
+			'%Y-%m-%d',
+			'%Y-%m-%d %H',
+			'%Y-%m-%d %H:%M',
+			'%Y-%m-%d %H:%M:%S',
+			'%Y-%m-%d %I:%M:%S %p'
+		]
 		if custom_format:
 			formats.insert(0, custom_format)
 		for f in formats:
