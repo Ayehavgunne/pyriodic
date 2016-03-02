@@ -71,7 +71,6 @@ class Scheduler(object):
 				threaded=threaded, ignore_exceptions=ignore_exceptions, retrys=retrys, retry_time=retry_time,
 				alt_func=alt_func, start_time=start_time, interval=interval, custom_format=custom_format))
 			return func
-
 		return inner
 
 	def trim_jobs(self):
@@ -129,11 +128,15 @@ class Scheduler(object):
 			self.reset()
 
 	def start_web_server(self, existing=False, port=8765):
-		import cherrypy
-		start_web_interface(self)
-		if not existing:
-			cherrypy.config.update({'server.socket_port': port, 'engine.autoreload.on': False})
-			cherrypy.engine.start()
+		try:
+			# noinspection PyUnresolvedReferences
+			import cherrypy
+			start_web_interface(self)
+			if not existing:
+				cherrypy.config.update({'server.socket_port': port})
+				cherrypy.engine.start()
+		except ImportError:
+			raise ImportError('The web interface requires that CherryPy be installed')
 
 
 def job_func_wrapper(job, log, retrys, alt=False):

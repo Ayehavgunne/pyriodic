@@ -40,7 +40,8 @@ def datetime_string(string, custom_format=None):
 	except ImportError:
 		string = string.replace('/', '-')
 		formats = [
-			'%Y', '%Y-%m',
+			'%Y',
+			'%Y-%m',
 			'%Y-%m-%d',
 			'%Y-%m-%d %H',
 			'%Y-%m-%d %H:%M',
@@ -51,8 +52,7 @@ def datetime_string(string, custom_format=None):
 			formats.insert(0, custom_format)
 		for f in formats:
 			try:
-				t = datetime.strptime(string, f)
-				return t
+				return datetime.strptime(string, f)
 			except ValueError:
 				continue
 		raise ValueError('The string did not match any configured format')

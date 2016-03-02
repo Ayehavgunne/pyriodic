@@ -13,8 +13,7 @@ intvl = OrderedDict()
 intvl['yearly'] = (
 	'january', 'jan', 'ja', 'february', 'feb', 'fe', 'march', 'mar', 'april', 'apr', 'ap' 'may', 'june', 'jun', 'july',
 	'jul', 'august', 'aug', 'au', 'september', 'sep', 'se', 'october', 'oct', 'oc', 'november', 'nov', 'no',
-	'december',
-	'dec', 'de'
+	'december', 'dec', 'de'
 )
 intvl['monthly'] = ('st', 'th', 'rd', 'nd')
 intvl['weekly'] = (

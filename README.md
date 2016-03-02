@@ -98,3 +98,4 @@ print(s.next_run_times())
 - [x] Add stop and start methods to scheduler
 - [x] Add some kind of logging for executed tasks
 - [ ] Add some backend storage options
+- [ ] See how the calendar module can simplify some code
