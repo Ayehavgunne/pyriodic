@@ -1,0 +1,33 @@
+from typing import Union
+from pyriodic import Scheduler
+from pyriodic import DurationJob
+from pyriodic import DatetimeJob
+from pyriodic import DatetimesJob
+
+try:
+	import cherrypy
+except ImportError:
+	cherrypy = None
+
+JobType = Union[DurationJob, DatetimeJob, DatetimesJob]
+
+def start_web_interface(scheduler: Scheduler) -> None:
+	# noinspection PyMethodMayBeStatic
+	# noinspection PyPep8Naming
+	class Jobs:
+		def GET(self, name: str=None) -> str: ...
+		def POST(self) -> None: ...
+		def PUT(self, name: str=None, status: str=None, when: str=None) -> str: ...
+		def DELETE(self, name: str=None) -> str: ...
+		@staticmethod
+		def job_to_html(job: JobType) -> str: ...
+		@staticmethod
+		def job_history_to_html(job: JobType) -> str: ...
+	class Interface:
+		def __init__(self) -> None: ...
+		@cherrypy.expose
+		def index(self) -> str: ...
+		@staticmethod
+		def start(self) -> None: ...
+		@staticmethod
+		def stop(self) -> None: ...

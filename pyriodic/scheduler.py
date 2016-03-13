@@ -1,12 +1,16 @@
-from time import sleep
 from datetime import datetime
 from threading import Timer
 from threading import Thread
 from . import now
 from . import start_web_interface
 
+PORT = 8765
+
 
 class Scheduler(object):
+	"""
+	Manages Job objects and the waiting between job executions
+	"""
 	def __init__(self, log=None):
 		self.jobs = []
 		self.current_job = None
@@ -18,7 +22,11 @@ class Scheduler(object):
 			import logging
 			self.log = logging.getLogger('pyriodic_dummy')
 
-	def set_timer(self):
+	def _set_timer(self):
+		"""
+		Finds the next job that is not paused and if it isn't already then it will set it as the current job.
+		From there it sets a timer to wait for the next scheduled time for that job to execute.
+		"""
 		if self.jobs:
 			x = 0
 			while self.jobs[x].is_paused():
@@ -30,42 +38,64 @@ class Scheduler(object):
 				if self.sleeper:
 					self.sleeper.cancel()
 				wait_time = (next_job.next_run_time - now()).total_seconds()
-				self.sleeper = Timer(wait_time, self.execute_job)
+				self.sleeper = Timer(wait_time, self._execute_job)
 				self.sleeper.start()
 				self.current_job = next_job
 				self.running = True
 
-	def execute_job(self):
+	def _execute_job(self):
+		"""
+		Takes the currently scheduled job and starts it in it's own thread or just executes it if it is set to run
+		concurrently. Then it trims, sorts and sets up the next job for execution.
+		"""
 		if self.current_job:
 			if not self.current_job.is_paused():
 				if self.current_job.threaded:
-					self.current_job.thread = Thread(target=job_func_wrapper,
-						args=(self.current_job, self.log, self.current_job.retrys))
+					self.current_job.thread = Thread(target=self.current_job.run, args=(self.current_job.retrys,))
 					self.current_job.thread.start()
 				else:
-					job_func_wrapper(self.current_job, self.log, self.current_job.retrys)
+					self.current_job.run(self.current_job.retrys)
 			self.current_job = None
 		if self.running:
-			self.trim_jobs()
-			self.sort_jobs()
-			self.set_timer()
+			self._trim_jobs()
+			self._sort_jobs()
+			self._set_timer()
 
-	def sort_jobs(self):
+	def _sort_jobs(self):
+		"""
+		Sorts the jobs by the least amount of time till the next execution time to the most if there is a
+		next_run_time at all
+		"""
 		if len(self.jobs) > 1:
 			self.jobs.sort(key=lambda job: job.next_run_time if job.next_run_time is not None else datetime.max)
 
+	def _trim_jobs(self):
+		"""
+		Finds any jobs that are not set to repeat and have at least executed once already to be removed from the list of jobs
+		"""
+		for job in self.jobs:
+			if not job.repeating and job.run_count > 0:
+				self.remove(job.name)
+
 	def add_job(self, job):
+		"""
+		Takes a Job object and adds it to the list of jobs, gives it a name if it doesn't have one, sorts jobs and
+		then sets up the next job for execution. Returns the job name for easy referencing to it later.
+		"""
 		if job.name is None:
 			job.name = 'Job{}'.format(len(self.jobs) + 1)
 		job.parent = self
 		self.jobs.append(job)
-		self.sort_jobs()
-		self.set_timer()
+		self._sort_jobs()
+		self._set_timer()
 		return job.name
 
 	def schedule_job(self, job_type, when, args=None, kwargs=None, name=None, repeating=True, threaded=True,
 			ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, start_time=None, interval=None,
 			custom_format=None):
+		"""
+		A function wrapper to be used as a decorator to schedule jobs with
+		"""
 		def inner(func):
 			self.add_job(job_type(func=func, when=when, args=args, kwargs=kwargs, name=name, repeating=repeating,
 				threaded=threaded, ignore_exceptions=ignore_exceptions, retrys=retrys, retry_time=retry_time,
@@ -73,111 +103,107 @@ class Scheduler(object):
 			return func
 		return inner
 
-	def trim_jobs(self):
-		for job in self.jobs:
-			if not job.repeating and job.run_count > 0:
-				self.remove(job.name)
-
 	def get_job(self, name):
+		"""
+		Finds and returns the Job object that matched the name provided
+		"""
 		return self.jobs[self.find_job_index(name)]
 
 	def reset(self):
+		"""
+		Resets the Scheduler status by clearing the current job,
+		stopping the Timer, sorting the jobs and setting the next Timer
+		"""
 		self.running = True
 		self.current_job = None
 		if self.sleeper:
 			self.sleeper.cancel()
-		self.sort_jobs()
-		self.set_timer()
+			self.sleeper = None
+		self._sort_jobs()
+		self._set_timer()
 
 	def remove(self, name):
-		del self.jobs[self.find_job_index(name)]
-		self.reset()
+		"""
+		Finds and removes the Job object that matched the name provided
+		"""
+		idx = self.find_job_index(name)
+		job = self.jobs[idx]
+		del self.jobs[idx]
+		if self.current_job == job:
+			self.reset()
 
 	def pop(self, name):
+		"""
+		Finds and removes the Job object that matched the name provided and returns it
+		"""
 		idx = self.find_job_index(name)
 		if self.current_job == self.jobs[idx]:
 			self.reset()
 		return self.jobs.pop(idx)
 
 	def job_names(self):
+		"""
+		Returns a list of the names for the jobs in the scheduler
+		"""
 		return [job.name for job in self.jobs]
 
 	def find_job_index(self, name):
+		"""
+		Finds the index of the job that matches the name provided from the list of Job objects
+		"""
 		for x, job in enumerate(self.jobs):
 			if job.name == name:
 				return x
 
 	def next_run_times(self):
+		"""
+		Returns a dictionary of the list of Job objects with the name as the key and the next run time as the item
+		"""
 		return {job.name: job.next_run_time for job in self.jobs}
 
 	def start_all(self):
+		"""
+		Starts all the jobs if any of them happened to be paused if it isn't already running
+		"""
 		for job in self.jobs:
-			job.start()
+			if not job.is_running:
+				job.start()
 		self.reset()
 
 	def stop_scheduler(self):
+		"""
+		Stops the scheduler from executing any jobs
+		"""
 		self.running = False
 		self.current_job = None
 		if self.sleeper:
 			self.sleeper.cancel()
+			self.sleeper = None
 
 	def pause_all(self, cancel_current=False):
+		"""
+		Pauses all the jobs currently in the scheduler with the option
+		to cancel the Timer for the currently scheduled job
+		"""
 		for job in reversed(self.jobs):
 			job.pause()
 		if cancel_current:
 			self.reset()
 
-	def start_web_server(self, existing=False, port=8765):
+	def start_web_server(self, pre_existing_server=False, port=PORT):
+		"""
+		Allows for the starting of a CherryPy web application for the viewing and management of scheduled jobs.
+		Requires that the user has the module CherryPy installed on their system
+		"""
+		global PORT
 		try:
 			# noinspection PyUnresolvedReferences
 			import cherrypy
 			start_web_interface(self)
-			if not existing:
+			if not pre_existing_server:
 				cherrypy.config.update({'server.socket_port': port})
 				cherrypy.engine.start()
+				print('Started the Pyriodic web interface at http://localhost:{}/pyriodic'.format(port))
+				PORT += 1  # increments so multiple schedulers can be instantiated and display their own jobs page
 		except ImportError:
 			raise ImportError('The web interface requires that CherryPy be installed')
-
-
-def job_func_wrapper(job, log, retrys, alt=False):
-	job.run()
-	args = job.args
-	kwargs = job.kwargs
-	job.add_run_time(now())
-	log.info('Job "{}" was started. Run count = {}'.format(job.name, job.run_count))
-	try:
-		if alt:
-			if args and not kwargs:
-				job.alt_func(*args)
-			elif not args and kwargs:
-				job.alt_func(**kwargs)
-			elif args and kwargs:
-				job.alt_func(*args, **kwargs)
-			else:
-				job.alt_func()
-		else:
-			if args and not kwargs:
-				job.func(*args)
-			elif not args and kwargs:
-				job.func(**kwargs)
-			elif args and kwargs:
-				job.func(*args, **kwargs)
-			else:
-				job.func()
-		job.wait()
-	except Exception as e:
-		job.exceptions.append((e, job.run_count))
-		log.info('Job "{}" enountered an exception ({}). Run count = {}'.format(job.name, e, job.run_count))
-		if retrys:
-			if job.retry_time:
-				job.pause()
-				sleep(job.retry_time)
-			if job.alt_func:
-				job_func_wrapper(job, log, retrys - 1, True)
-			else:
-				job_func_wrapper(job, log, retrys - 1)
-			job.parent.reset()
-			return
-		if not job.ignore_exceptions:
-			job.pause()
-			raise

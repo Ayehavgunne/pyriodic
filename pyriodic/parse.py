@@ -4,6 +4,14 @@ from datetime import datetime
 
 
 def duration_string(string):  # I hate regex even though I should be using it here
+	"""
+	Takes a string representing an interval and turns it into a timedelta object.
+	The string must contain at least one indicator of the desired interval multiplyer
+	in the form of a 'd' for days, 'h' for hours, 'm' for minutes and 's' for seconds.
+	For example the string '3d4h15m30s' would represent in interval of 3 days,
+	4 hours, 15 minutes and 30 seconds. Seconds is the minimum resolution that can
+	be calculated.
+	"""
 	string = string.lower()
 	if 'd' not in string and 'h' not in string and 'm' not in string and 's' not in string:
 		raise ValueError(
@@ -33,6 +41,12 @@ def duration_string(string):  # I hate regex even though I should be using it he
 
 
 def datetime_string(string, custom_format=None):
+	"""
+	Takes a string and parses it into a datetime object with the dateutil module if present.
+	If not it will fall back to a more rudimentary method of using strptime with a list of
+	predefined formats with the option of passing in a custom format to try before the others.
+	The first one to parse correctly gets returned.
+	"""
 	try:
 		# noinspection PyUnresolvedReferences
 		from dateutil.parser import parser
@@ -44,7 +58,9 @@ def datetime_string(string, custom_format=None):
 			'%Y-%m',
 			'%Y-%m-%d',
 			'%Y-%m-%d %H',
+			'%Y-%m-%d %I %p'
 			'%Y-%m-%d %H:%M',
+			'%Y-%m-%d %I:%M %p'
 			'%Y-%m-%d %H:%M:%S',
 			'%Y-%m-%d %I:%M:%S %p'
 		]

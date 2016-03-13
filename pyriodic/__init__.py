@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 __version__ = '0.0.6'
 now = datetime.now
 

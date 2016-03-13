@@ -1,4 +1,6 @@
 from calendar import isleap
+from calendar import monthrange
+from time import sleep
 from collections import OrderedDict
 from abc import ABCMeta
 from abc import abstractclassmethod
@@ -7,7 +9,6 @@ from datetime import datetime
 from datetime import timedelta
 from pyriodic import parse
 from . import now
-
 
 intvl = OrderedDict()
 intvl['yearly'] = (
@@ -21,18 +22,15 @@ intvl['weekly'] = (
 	'fr', 'saturday', 'sat', 'sa', 'sunday', 'sun', 'su'
 )
 
-days_in_month = {1: 31, 2: 28, 3: 31, 4: 30, 5: 31, 6: 30, 7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
-days_in_year = 365
-days_in_week = 7
-
 
 class Job(metaclass=ABCMeta):
-	def __init__(self, func, when, args=None, kwargs=None, name=None, repeating=True,
-			threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None):
+	"""
+	The Abstract Base Class for all Job Types.
+	"""
+	def __init__(self, func, when, name=None, repeating=True, threaded=True,
+			ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None):
 		self.func = func
 		self.when = when
-		self.args = args
-		self.kwargs = kwargs
 		self.repeating = repeating
 		self.name = name
 		self.run_time_history = []
@@ -53,48 +51,108 @@ class Job(metaclass=ABCMeta):
 
 	@property
 	def first_run_time(self):
+		"""
+		Returns the first time a job instance was run
+		"""
 		if self.run_time_history:
 			return self.run_time_history[0]
 
 	@property
 	def last_run_time(self):
+		"""
+		Returns the most recent time a job instance was run
+		"""
 		if self.run_time_history:
 			return self.run_time_history[-1]
 
-	def add_run_time(self, dt):
+	def _add_run_time(self, dt):
+		"""
+		Adds a run time to the history of the job instance and clears the microseconds
+		from the datetime object to prevent drift from the slight lag between run times
+		"""
 		self.run_time_history.append(dt.replace(microsecond=0))
 
 	@property
 	def run_count(self):
+		"""
+		Returns the number of times the job instance has been run based on the run time history
+		"""
 		return len(self.run_time_history)
 
 	def start(self):
+		"""
+		Sets a job instance status to 'waiting' and resets the parent object to properly sort it's jobs
+		"""
 		self.status = 'waiting'
 		if self.parent:
 			self.parent.reset()
 
 	def is_waiting(self):
+		"""
+		A test of the job instance to see if it is currently in the waiting status
+		"""
 		return self.status == 'waiting'
 
 	def wait(self):
+		"""
+		Sets a job instance status to 'waiting'
+		"""
 		self.status = 'waiting'
 
 	def pause(self):
+		"""
+		Sets a job instance status to 'paused' and resets the parent object to properly sort it's jobs
+		"""
 		self.status = 'paused'
 		if self.parent:
 			self.parent.reset()
 
 	def is_paused(self):
+		"""
+		A test of the job instance to see if it is currently in the paused status
+		"""
 		return self.status == 'paused'
 
-	def run(self):
+	def run(self, retrys=0, alt=False):
+		"""
+		Sets a job instance status to 'running' and executes the function accosiated with the job
+		"""
 		self.status = 'running'
+		self._add_run_time(now())
+		self.parent.log.info('Job "{}" was started. Run count = {}'.format(self.name, self.run_count))
+		try:
+			if alt:
+				self.alt_func()
+			else:
+				self.func()
+		except Exception as e:
+			self.exceptions.append((e, self.run_count))
+			self.parent.log.info('Job "{}" enountered an exception ({}). Run count = {}'.format(self.name, e, self.run_count))
+			if retrys:
+				if self.retry_time:
+					self.pause()
+					sleep(self.retry_time)
+				if self.alt_func:
+					self.run(retrys - 1, True)
+				else:
+					self.run(retrys - 1)
+				self.parent.reset()
+				return
+			if not self.ignore_exceptions:
+				self.pause()
+				raise
 
 	def is_running(self):
+		"""
+		A test of the job instance to see if it is currently in the running status
+		"""
 		return self.status == 'running'
 
 	@staticmethod
 	def is_in_future(when):
+		"""
+		A test of a datetime object to see if it is in the past or the future compared to the present
+		"""
 		return (when - now()).total_seconds() > 0
 
 	def __repr__(self):
@@ -102,50 +160,49 @@ class Job(metaclass=ABCMeta):
 
 
 class DurationJob(Job):
+	"""
+	A Job Type that sets up execution based on an interval of time.
+	For example it could execute every 10 minutes, 3 hours or 7 days.
+	Works best for tasks that need to be run on a regular basis but
+	not at a specific time.
+	"""
 	# noinspection PyUnusedLocal
-	def __init__(self, func, when, *argums, start_time=None, args=None, kwargs=None, name=None, repeating=True,
+	def __init__(self, func, when, *argums, start_time=None, name=None, repeating=True,
 			threaded=True, ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, **keyargs):
-		if not isinstance(when, (str, timedelta)):
-			raise TypeError('Argument \'when\' must be either a string or timedelta object, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, name, repeating,
+		super().__init__(func, when, name, repeating,
 			threaded, ignore_exceptions, retrys, retry_time, alt_func)
 		if isinstance(start_time, str):
 			self.start_time = parse.datetime_string(start_time)
-		elif not isinstance(start_time, datetime) or start_time is None:
-			self.start_time = start_time
 		else:
-			raise TypeError('Argument \'start\' must be a datetime object, not {}'.format(type(when)))
+			self.start_time = start_time
 		self.time_initialized = now()
 
 	@property
 	def next_run_time(self):
-		if self.is_paused():
-			return
-		else:
+		"""
+		Returns the next run time based on the set time interval
+		"""
+		if not self.is_paused():
 			if not self.first_run_time:
 				if self.start_time:
 					if self.is_in_future(self.start_time):
 						return self.start_time
-				if isinstance(self.when, str):
-					return self.time_initialized + parse.duration_string(self.when)
-				else:
-					return self.time_initialized + self.when
+				return self.time_initialized + parse.duration_string(self.when)
 			else:
-				if isinstance(self.when, str):
-					return self.last_run_time + parse.duration_string(self.when)
-				else:
-					return self.last_run_time + self.when
+				return self.last_run_time + parse.duration_string(self.when)
 
 
 class DatetimeJob(Job):
+	"""
+	A Job Type that sets up execution based on a specific datetime and interval.
+	For example it could execute every day at noon, every Tuesday or the 15th
+	of the month. Works best for jobs that need to run at specific times in intervals
+	of a day or greater.
+	"""
 	# noinspection PyUnusedLocal
-	def __init__(self, func, when, *argums, interval=None, args=None, kwargs=None,
-			name=None, repeating=True, threaded=True, ignore_exceptions=False,
-			retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
-		if not isinstance(when, str):
-			raise TypeError('Argument \'when\' must be a string, not {}'.format(type(when)))
-		super().__init__(func, when, args, kwargs, name, repeating,
-			threaded, ignore_exceptions, retrys, retry_time, alt_func)
+	def __init__(self, func, when, *argums, interval=None, name=None, repeating=True, threaded=True,
+			ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
+		super().__init__(func, when, name, repeating, threaded, ignore_exceptions, retrys, retry_time, alt_func)
 		self.custom_format = custom_format
 		if interval is None:
 			for key, val in intvl.items():
@@ -159,43 +216,53 @@ class DatetimeJob(Job):
 
 	@property
 	def next_run_time(self):
-		if self.is_paused():
-			return
-		else:
+		"""
+		Returns the next run time based on the set datetime and interval
+		"""
+		if not self.is_paused():
 			return self.increment(parse.datetime_string(self.when, self.custom_format))
 
 	def increment(self, when):
+		"""
+		Takes a datetime object and if it is in the past compared to the present it will
+		add the defined interval of time to it till it is in the future
+		"""
 		while not self.is_in_future(when):
+			n = now()
 			if self.interval == 'daily':
 				when = when + timedelta(days=1)
 			elif self.interval == 'weekly':
-				when = when + timedelta(days=days_in_week)
+				when = when + timedelta(days=7)
 			elif self.interval == 'monthly':
-				if now().month == 2 and isleap(now().year):
-					when = when + timedelta(days=days_in_month[2] + 1)
-				else:
-					when = when + timedelta(days=days_in_month[now().month])
+				when = when + timedelta(days=monthrange(n.year, n.month)[1])
 			elif self.interval == 'yearly':
-				if isleap(now().year) and self.is_in_future(datetime(year=now().year, month=2, day=29)):
-					when = when + timedelta(days=days_in_year + 1)
+				if isleap(n.year) and self.is_in_future(datetime(year=n.year, month=2, day=29)):
+					when = when + timedelta(days=366)
 				else:
-					when = when + timedelta(days=days_in_year)
+					when = when + timedelta(days=365)
 		return when
 
 
 class DatetimesJob(DatetimeJob):
+	"""
+	A Job Type that sets up execution based on multiple datetimes and an interval.
+	For example it could execute every 1st of the month at 5:30 pm and every 15th of the month at 12:30 am.
+	Works best for jobs that need to run at multiple specific times in intervals of a day or greater.
+	"""
 	# noinspection PyUnusedLocal
-	def __init__(self, func, when, interval, *argums, args=None, kwargs=None, repeating=True, name=None, threaded=True,
+	def __init__(self, func, when, interval, *argums, name=None, repeating=True, threaded=True,
 			ignore_exceptions=False, retrys=0, retry_time=0, alt_func=None, custom_format=None, **keyargs):
-		super().__init__(func, when, interval, args, kwargs, name, repeating,
-			threaded, ignore_exceptions, retrys, retry_time, alt_func, custom_format)
+		super().__init__(func, when, interval, name, repeating, threaded,
+			ignore_exceptions, retrys, retry_time, alt_func, custom_format)
 		self.queue = deque([parse.datetime_string(dt.rstrip(' ').lstrip(' '), custom_format) for dt in when.split(',')])
 
 	@property
 	def next_run_time(self):
-		if self.is_paused():
-			return
-		else:
+		"""
+		Returns the next run time based on the set datetime and interval
+		for the next datetime in the queue
+		"""
+		if not self.is_paused():
 			x = len(self.queue)
 			while x > 0 and not self.is_in_future(self.queue[0]):
 				x -= 1

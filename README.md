@@ -70,12 +70,9 @@ print(s.next_run_times())
 
 - [ ] Add timezone awareness
 - [ ] Add tests
-- [ ] Add docstrings
-- [x] Format for PEP8 compliance
 - [ ] Add Python 2.7 compatibility
     - [ ] Use Six?
-- [ ] Add type hints
-- [ ] Add 'pause till' functionality
+- [x] Add type hints
 - [x] Add ability to schedule jobs with decorators
 - [x] Expand types of scheduled tasks
     - [x] Allow daily tasks
@@ -98,4 +95,3 @@ print(s.next_run_times())
 - [x] Add stop and start methods to scheduler
 - [x] Add some kind of logging for executed tasks
 - [ ] Add some backend storage options
-- [ ] See how the calendar module can simplify some code

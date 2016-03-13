@@ -1,6 +1,5 @@
 import os
 
-
 try:
 	import cherrypy
 except ImportError:
@@ -8,6 +7,9 @@ except ImportError:
 
 
 def start_web_interface(scheduler):
+	"""
+	Sets up the web interface for displaying and maintining of jobs within the scheduler
+	"""
 	# noinspection PyPep8Naming
 	class Jobs(object):
 		exposed = True
