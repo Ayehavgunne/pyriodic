@@ -10,12 +10,7 @@
 				width:100%;
 				height:100%;
 				margin:0;
-			}
-			#sidebar {
-				height:100%;
-				width:100px;
-				float:left;
-				background-color:#0377E8;
+				font-family: Trebuchet MS, serif;
 			}
 			#sidebar span, #sidebar h4 {
 				float:left;
@@ -28,7 +23,7 @@
 			}
 			#content {
 				float:left;
-				width:calc(100% - 100px);
+				width:100%;
 				height:100%;
 			}
 			#content #jobs, #content h3 {
@@ -63,7 +58,25 @@
 				color:#0377E8;
 				cursor:pointer;
 			}
-			span.clear, span.pause, span.start {
+			div.remove, div.pause, div.start {
+				position:absolute;
+				font-size:small;
+				top:6px;
+				color:#0377E8;
+				display:inline;
+				margin-left:9px;
+				cursor:pointer;
+			}
+			div.remove {
+				right:30px;
+			}
+			div.pause {
+				right:118px;
+			}
+			div.start {
+				right:193px;
+			}
+			span.remove, span.pause, span.start {
 				float:right;
 				clear:right;
 				font-size:small;
@@ -74,49 +87,61 @@
 			}
 		</style>
 		<script type="text/javascript">
-			$(function(){
+			$(function () {
 				function jobbuttons() {
 					$('.start').unbind('click').click(function () {
+						var job = $(this).parent().data('job');
+						if (!job) {
+							job = 'all';
+						}
 						$.ajax({
-							url: './jobs/' + $(this).parent().data('job') + '/start',
+							url: './jobs/' + job + '/start',
 							type: 'PUT'
-						}).done(function(html) {
+						}).done(function (html) {
 							$('#jobs').html(html);
 							jobbuttons();
 						});
 					});
 					$('.pause').unbind('click').click(function () {
+						var job = $(this).parent().data('job');
+						if (!job) {
+							job = 'all';
+						}
 						$.ajax({
-							url: './jobs/' + $(this).parent().data('job') + '/pause',
+							url: './jobs/' + job + '/pause',
 							type: 'PUT'
-						}).done(function(html) {
+						}).done(function (html) {
 							$('#jobs').html(html);
 							jobbuttons();
 						});
 					});
-					$('.clear').unbind('click').click(function () {
+					$('.remove').unbind('click').click(function () {
+						var job = $(this).parent().data('job');
+						if (!job) {
+							job = '';
+						}
 						$.ajax({
-							url: './jobs/' + $(this).parent().data('job'),
+							url: './jobs/' + job,
 							type: 'DELETE'
-						}).done(function(html) {
+						}).done(function (html) {
 							$('#jobs').html(html);
 							jobbuttons();
 						});
 					});
-					$('.when').unbind('click').click(function() {
+					$('.when').unbind('click').click(function () {
 						var text = $(this).html().replace('Interval: ', '');
-						$(this).html('<button>Done</button><input type="text" value="'+ text + '" />');
-						$(this).children().click(function(e) {
+						$(this).html('<button>Done</button><input type="text" value="' + text + '" />');
+						$(this).children().click(function (e) {
 							e.stopPropagation();
 						});
-						$(this).find('button').click(function() {
+						$(this).find('button').click(function () {
 							var val = $(this).next().val();
 							var data = $(this).parents('.job').data('job');
 							$(this).parent().html('Interval: ' + val);
 							$.ajax({
 								url: './jobs/' + data + '/when/' + val,
 								type: 'PUT'
-							}).done(function(html) {
+							}).done(function (html) {
 								$('#jobs').html(html);
 								jobbuttons();
 							});
@@ -127,46 +152,93 @@
 					$('#jobs').html(html);
 					jobbuttons();
 				});
-				$('#start').click(function() {
-					$.ajax({
-						url: './jobs/all/start',
-						type: 'PUT'
-					}).done(function(html) {
-						$('#jobs').html(html);
-						jobbuttons();
-					});
-				});
-				$('#pause').click(function() {
-					$.ajax({
-						url: './jobs/all/pause',
-						type: 'PUT'
-					}).done(function(html) {
-						$('#jobs').html(html);
-						jobbuttons();
-					});
-				});
-				$('#clear').click(function() {
-					$.ajax({
-						url: './jobs',
-						type: 'DELETE'
-					}).done(function(html) {
-						$('#jobs').html(html);
-						jobbuttons();
-					});
-				});
 			});
 		</script>
 	</head>
 	<body>
-		<div id="sidebar">
-			<h4>Controll All</h4>
-			<span id="start">Start</span>
-			<span id="pause">Pause</span>
-			<span id="clear">Clear</span>
-		</div>
 		<div id="content">
 			<h3>Scheduled Jobs</h3>
-			<div id="jobs"></div>
+			<div class="start">Start All</div>
+			<div class="pause">Pause All</div>
+			<div class="remove">Remove All</div>
+			<div id="jobs">
+				<!--<div class="job" data-job="MyJob">-->
+					<!--<div>-->
+						<!--<span class="jobName">MyJob</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span class="when">Interval: 10s</span>-->
+						<!--<span>Status: Waiting</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span class="lastRunTime">Last Run Time: </span>-->
+						<!--<span class="nextRunTime">Next Run Time: 2016-03-13 10:01:27 PM</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span>Run Count: 0</span>-->
+					<!--</div>-->
+					<!--<span class="start">Start</span>-->
+					<!--<span class="pause">Pause</span>-->
+					<!--<span class="remove">Remove</span>-->
+				<!--</div>-->
+				<!--<div class="job" data-job="Job2">-->
+					<!--<div>-->
+						<!--<span class="jobName">Job2</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span class="when">Interval: 15s</span>-->
+						<!--<span>Status: Waiting</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span class="lastRunTime">Last Run Time: </span>-->
+						<!--<span class="nextRunTime">Next Run Time: 2016-03-13 10:01:32 PM</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span>Run Count: 0</span>-->
+					<!--</div>-->
+					<!--<span class="start">Start</span>-->
+					<!--<span class="pause">Pause</span>-->
+					<!--<span class="remove">Remove</span>-->
+				<!--</div>-->
+				<!--<div class="job" data-job="Job4">-->
+					<!--<div>-->
+						<!--<span class="jobName">Job4</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span class="when">Interval: 11:36 pm, 11:37 pm</span>-->
+						<!--<span>Status: Waiting</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span class="lastRunTime">Last Run Time: </span>-->
+						<!--<span class="nextRunTime">Next Run Time: 2016-03-13 11:36:00 PM</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span>Run Count: 0</span>-->
+					<!--</div>-->
+					<!--<span class="start">Start</span>-->
+					<!--<span class="pause">Pause</span>-->
+					<!--<span class="remove">Remove</span>-->
+				<!--</div>-->
+				<!--<div class="job" data-job="Job3">-->
+					<!--<div>-->
+						<!--<span class="jobName">Job3</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span class="when">Interval: Monday</span>-->
+						<!--<span>Status: Waiting</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span class="lastRunTime">Last Run Time: </span>-->
+						<!--<span class="nextRunTime">Next Run Time: 2016-03-14 12:00:00 AM</span>-->
+					<!--</div>-->
+					<!--<div>-->
+						<!--<span>Run Count: 0</span>-->
+					<!--</div>-->
+					<!--<span class="start">Start</span>-->
+					<!--<span class="pause">Pause</span>-->
+					<!--<span class="remove">Remove</span>-->
+				<!--</div>-->
+			</div>
 		</div>
 	</body>
 </html>

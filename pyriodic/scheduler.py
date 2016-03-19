@@ -24,17 +24,12 @@ class Scheduler(object):
 
 	def _set_timer(self):
 		"""
-		Finds the next job that is not paused and if it isn't already then it will set it as the current job.
+		Finds the next job and if it isn't already then it will set it as the current job.
 		From there it sets a timer to wait for the next scheduled time for that job to execute.
 		"""
 		if self.jobs:
-			x = 0
-			while self.jobs[x].is_paused():
-				x += 1
-				if x >= len(self.jobs):
-					return
-			next_job = self.jobs[x]
-			if self.current_job != next_job:
+			next_job = self.jobs[0]
+			if not next_job.is_paused and self.current_job != next_job:
 				if self.sleeper:
 					self.sleeper.cancel()
 				wait_time = (next_job.next_run_time - now()).total_seconds()
@@ -166,7 +161,7 @@ class Scheduler(object):
 		Starts all the jobs if any of them happened to be paused if it isn't already running
 		"""
 		for job in self.jobs:
-			if not job.is_running:
+			if not job.is_running():
 				job.start()
 		self.reset()
 
