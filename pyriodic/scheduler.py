@@ -21,6 +21,7 @@ class Scheduler(object):
 		else:
 			import logging
 			self.log = logging.getLogger('pyriodic_dummy')
+			self.log.info('Initializing Scheduler')
 
 	def _set_timer(self):
 		"""
