@@ -40,6 +40,8 @@ def start_web_interface(scheduler):
 						job.pause()
 					elif status == 'start':
 						job.start()
+					elif status == 'run':
+						job.run()
 			else:
 				if name != 'all' and when:
 					job = scheduler.get_job(name)
@@ -58,7 +60,7 @@ def start_web_interface(scheduler):
 		@staticmethod
 		def job_to_html(job):
 			return '<div class="job" data-job="{0}"><div><span class="jobName">{0}</span></div><div><span ' \
-				'class="funcName">Function: {1}</span><span>Run Count: {6}</span></div><div><span ' \
+				'class="funcName run" title="click to run">Function: {1}</span><span>Run Count: {6}</span></div><div><span ' \
 				'class="lastRunTime">Last Run Time: {2}</span><span class="nextRunTime">Next Run Time: {' \
 				'3}</span></div><div><span class="when">Interval: {4}</span><span>Status: {' \
 				'5}</span></div><span class="start">Start</span><span class="pause">Pause</span><span ' \
@@ -74,7 +76,6 @@ def start_web_interface(scheduler):
 				html = '{}<div>{}</div>'.format(html, run_time.strftime('%Y-%m-%d %I:%M:%S %p'))
 			html = '{}</div>'.format(html)
 			return html
-
 
 	class Interface(object):
 		jobs = Jobs()

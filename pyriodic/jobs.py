@@ -8,6 +8,7 @@ from collections import deque
 from datetime import datetime
 from datetime import timedelta
 from pyriodic import parse
+from .util import run_async
 from . import now
 
 intvl = OrderedDict()
@@ -77,7 +78,7 @@ class Job(metaclass=ABCMeta):
 		"""
 		Returns the number of times the job instance has been run based on the run time history
 		"""
-		return len(self.run_time_history)
+		return int(len(self.run_time_history))
 
 	def start(self):
 		"""
@@ -113,6 +114,7 @@ class Job(metaclass=ABCMeta):
 		"""
 		return self.status == 'paused'
 
+	@run_async
 	def run(self, retrys=0, alt=False):
 		"""
 		Sets a job instance status to 'running' and executes the function accosiated with the job
@@ -141,6 +143,7 @@ class Job(metaclass=ABCMeta):
 			if not self.ignore_exceptions:
 				self.pause()
 				raise
+		self.wait()
 
 	def is_running(self):
 		"""

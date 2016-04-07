@@ -63,6 +63,10 @@
 				color:#0377E8;
 				cursor:pointer;
 			}
+			span.run {
+				cursor:pointer;
+				color:#0377E8;
+			}
 			span.clear, span.pause, span.start {
 				float:right;
 				clear:right;
@@ -75,6 +79,12 @@
 		</style>
 		<script type="text/javascript">
 			$(function(){
+				function load() {
+					$.get('./jobs', function (html) {
+						$('#jobs').html(html);
+						jobbuttons();
+					});
+				}
 				function jobbuttons() {
 					$('.start').unbind('click').click(function () {
 						$.ajax({
@@ -84,6 +94,18 @@
 							$('#jobs').html(html);
 							jobbuttons();
 						});
+					});
+					$('.run').unbind('click').click(function () {
+						$.ajax({
+							url: './jobs/' + $(this).parent().parent().data('job') + '/run',
+							type: 'PUT'
+						}).done(function(html) {
+							$('#jobs').html(html);
+							jobbuttons();
+						});
+						setTimeout(function () {
+							load();
+						}, 500);
 					});
 					$('.pause').unbind('click').click(function () {
 						$.ajax({
@@ -123,10 +145,7 @@
 						});
 					});
 				}
-				$.get('./jobs', function (html) {
-					$('#jobs').html(html);
-					jobbuttons();
-				});
+				load();
 				$('#start').click(function() {
 					$.ajax({
 						url: './jobs/all/start',
