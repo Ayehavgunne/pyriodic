@@ -4,7 +4,7 @@ from threading import Thread
 from . import now
 from . import start_web_interface
 
-PORT = 8765
+port = 8765
 
 
 class Scheduler(object):
@@ -185,20 +185,20 @@ class Scheduler(object):
 		if cancel_current:
 			self.reset()
 
-	def start_web_server(self, pre_existing_server=False, port=PORT):
+	def start_web_server(self, pre_existing_server=False, p=port):
 		"""
 		Allows for the starting of a CherryPy web application for the viewing and management of scheduled jobs.
 		Requires that the user has the module CherryPy installed on their system
 		"""
-		global PORT
+		global port
 		try:
 			# noinspection PyUnresolvedReferences
 			import cherrypy
 			start_web_interface(self)
 			if not pre_existing_server:
-				cherrypy.config.update({'server.socket_port': port})
+				cherrypy.config.update({'server.socket_port': p})
 				cherrypy.engine.start()
-				print('Started the Pyriodic web interface at http://localhost:{}/pyriodic'.format(port))
-				PORT += 1  # increments so multiple schedulers can be instantiated and display their own jobs page
+				print('Started the Pyriodic web interface at http://localhost:{}/pyriodic'.format(p))
+				port += 1  # increments so multiple schedulers can be instantiated and display their own jobs page
 		except ImportError:
 			raise ImportError('The web interface requires that CherryPy be installed')
