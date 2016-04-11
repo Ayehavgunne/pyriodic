@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!--suppress CssUnusedSymbol -->
+<!--suppress ALL -->
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
@@ -12,15 +12,6 @@
 				margin:0;
 				font-family: Trebuchet MS, serif;
 			}
-			#sidebar span, #sidebar h4 {
-				float:left;
-				clear:left;
-				color:white;
-				margin-left:6px;
-			}
-			#sidebar span {
-				cursor:pointer;
-			}
 			#content {
 				float:left;
 				width:100%;
@@ -30,25 +21,20 @@
 				margin-left:30px;
 				margin-right:30px;
 			}
+			.divider {
+				border-bottom:1px solid #a5a5a5;
+			}
+			.divider:last-of-type {
+				border-bottom:none;
+			}
+			#jobs {
+				width:calc(100% - 60px);
+				border-collapse:collapse;
+			}
 			.job {
 				margin-bottom:10px;
 				padding-bottom:10px;
-				border-bottom:1px solid #a5a5a5;
 				min-height:40px;
-			}
-			.job:last-of-type {
-				border-bottom:none;
-			}
-			.job div {
-				float:left;
-				margin-right:20px;
-			}
-			.job div span:first-of-type {
-				margin-bottom:3px;
-			}
-			.job span {
-				float:left;
-				clear:left;
 			}
 			.jobName {
 				font-weight:bold;
@@ -58,36 +44,43 @@
 				color:#0377E8;
 				cursor:pointer;
 			}
-			div.run {
-				cursor:pointer;
-				color:#0377E8;
-			}
 			div.remove, div.pause, div.start {
-				position:absolute;
 				font-size:small;
 				top:6px;
 				color:#0377E8;
 				display:inline;
 				margin-left:9px;
 				cursor:pointer;
+				float:right;
+				clear:right;
 			}
-			div.remove {
+			div.remove.all {
+				position:absolute;
 				right:30px;
 			}
-			div.pause {
+			div.pause.all {
+				position:absolute;
 				right:118px;
 			}
-			div.start {
+			div.start.all {
+				position:absolute;
 				right:193px;
+			}
+			span.run {
+				cursor:pointer;
+				color:#0377E8;
 			}
 		</style>
 		<script type="text/javascript">
 			$(function () {
 				function load() {
 					$.get('./jobs', function (html) {
-						$('#jobs').html(html);
-						jobbuttons();
+						jobsHtml(html);
 					});
+				}
+				function jobsHtml(html) {
+					$('#jobs').find('tbody').html(html);
+					jobbuttons();
 				}
 				function jobbuttons() {
 					$('.start').unbind('click').click(function () {
@@ -99,8 +92,7 @@
 							url: './jobs/' + job + '/start',
 							type: 'PUT'
 						}).done(function (html) {
-							$('#jobs').html(html);
-							jobbuttons();
+							jobsHtml(html);
 						});
 					});
 					$('.run').unbind('click').click(function () {
@@ -108,8 +100,7 @@
 							url: './jobs/' + $(this).parent().parent().data('job') + '/run',
 							type: 'PUT'
 						}).done(function(html) {
-							$('#jobs').html(html);
-							jobbuttons();
+							jobsHtml(html);
 						});
 						setTimeout(function () {
 							load();
@@ -124,8 +115,7 @@
 							url: './jobs/' + job + '/pause',
 							type: 'PUT'
 						}).done(function (html) {
-							$('#jobs').html(html);
-							jobbuttons();
+							jobsHtml(html);
 						});
 					});
 					$('.remove').unbind('click').click(function () {
@@ -137,8 +127,7 @@
 							url: './jobs/' + job,
 							type: 'DELETE'
 						}).done(function (html) {
-							$('#jobs').html(html);
-							jobbuttons();
+							jobsHtml(html);
 						});
 					});
 					$('.when').unbind('click').click(function () {
@@ -155,27 +144,24 @@
 								url: './jobs/' + data + '/when/' + val,
 								type: 'PUT'
 							}).done(function (html) {
-								$('#jobs').html(html);
-								jobbuttons();
+								jobsHtml(html);
 							});
 						});
 					});
 				}
 				load();
-				$.get('./jobs', function (html) {
-					$('#jobs').html(html);
-					jobbuttons();
-				});
 			});
 		</script>
 	</head>
 	<body>
 		<div id="content">
 			<h3>Scheduled Jobs</h3>
-			<div class="start">Start All</div>
-			<div class="pause">Pause All</div>
-			<div class="remove">Remove All</div>
-			<div id="jobs"></div>
+			<div class="start all">Start All</div>
+			<div class="pause all">Pause All</div>
+			<div class="remove all">Remove All</div>
+			<table id="jobs">
+				<tbody></tbody>
+			</table>
 		</div>
 	</body>
 </html>

@@ -6,26 +6,33 @@ except ImportError:
 	cherrypy = None
 
 job_template = '''
-<div class="job" data-job="{0}">
-	<div>
-		<span class="jobName">{0}</span>
-	</div>
-	<div>
+<tr class="job" data-job="{0}">
+	<td rowspan=2>
+		<span class="jobName run" title="click to run now">{0}</span>
+	</td>
+	<td>
 		<span class="when">Interval: {3}</span>
-		<span>Status: {4}</span>
-	</div>
-	<div>
+	</td>
+	<td>
 		<span class="lastRunTime">Last Run Time: {1}</span>
-		<span class="nextRunTime">Next Run Time: {2}</span>
-	</div>
-	<div>
+	</td>
+	<td>
 		<span>Run Count: {5}</span>
-	</div>
-		<span class="start">Start</span>
-		<span class="pause">Pause</span>
-		<span class="remove">Remove</span>
-	</div>
-</div>'''
+	</td>
+	<td rowspan=2>
+		<div class="start">Start</div>
+		<div class="pause">Pause</div>
+		<div class="remove">Remove</div>
+	</td>
+</tr>
+<tr class="job divider" data-job="{0}">
+	<td>
+		<span>Status: {4}</span>
+	</td>
+	<td colspan=2>
+		<span class="nextRunTime">Next Run Time: {2}</span>
+	</td>
+</tr>'''
 
 
 def start_web_interface(scheduler):
@@ -97,7 +104,6 @@ def start_web_interface(scheduler):
 				html = '{}<div>{}</div>'.format(html, run_time.strftime('%Y-%m-%d %I:%M:%S %p'))
 			html = '{}</div>'.format(html)
 			return html
-
 
 	class Interface(object):
 		jobs = Jobs()
