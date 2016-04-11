@@ -34,6 +34,7 @@ entirely optional to use.
 ```python
 from pyriodic import DurationJob
 from pyriodic import DatetimeJob
+from pyriodic import DatetimesJob
 from pyriodic import Scheduler
 
 now = datetime.now
@@ -50,15 +51,21 @@ def func2():
 def func3():
     print('Func3', now() - start, now())
 
-s.add_job(DurationJob(
-    func1,
-    when='30m',
-    args=('This', 'is'),
-    kwargs={'arg3': 'the', 'arg4': 'first function'},
-    name='MyJob'
+my_job_handle = s.add_job(
+	DurationJob(
+		lambda: func1('This', 'is', arg3='the', arg4='first function'),
+		'10s',
+		name='MyJob',
+		retrys=3,
+		retry_time=5
+	)
+)
+s.add_job(DatetimeJob(func2, when='Monday'))
+s.add_job(DatetimesJob(
+	func3,
+	when='11:36 pm,11:37 pm',
+	interval='daily'
 ))
-s.add_job(DurationJob(func2, when='2h'))
-s.add_job(DatetimeJob(func3, when='12:00 pm'))
 
 print(s.next_run_times())
 ```
@@ -69,7 +76,7 @@ print(s.next_run_times())
 ##Todo
 
 - [ ] Add timezone awareness
-- [ ] Add tests
+- [ ] Write tests
 - [ ] Add Python 2.7 compatibility
     - [ ] Use Six?
 - [x] Add type hints
@@ -90,6 +97,7 @@ print(s.next_run_times())
 - [x] A web front end using CherryPy
     - [x] Be able to see the scheduled jobs
     - [x] Control jobs; pause, start back up, remove, reschedule
+    - [ ] Make the front end look better
 - [x] Expand the abilities of the custom datetime string parser in case
         dateutil cannot be used
 - [x] Add stop and start methods to scheduler

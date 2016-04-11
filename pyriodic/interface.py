@@ -5,6 +5,28 @@ try:
 except ImportError:
 	cherrypy = None
 
+job_template = '''
+<div class="job" data-job="{0}">
+	<div>
+		<span class="jobName">{0}</span>
+	</div>
+	<div>
+		<span class="when">Interval: {3}</span>
+		<span>Status: {4}</span>
+	</div>
+	<div>
+		<span class="lastRunTime">Last Run Time: {1}</span>
+		<span class="nextRunTime">Next Run Time: {2}</span>
+	</div>
+	<div>
+		<span>Run Count: {5}</span>
+	</div>
+		<span class="start">Start</span>
+		<span class="pause">Pause</span>
+		<span class="remove">Remove</span>
+	</div>
+</div>'''
+
 
 def start_web_interface(scheduler):
 	"""
@@ -59,15 +81,14 @@ def start_web_interface(scheduler):
 
 		@staticmethod
 		def job_to_html(job):
-			return '<div class="job" data-job="{0}"><div><span class="jobName">{0}</span></div><div><span ' \
-				'class="funcName run" title="click to run">Function: {1}</span><span>Run Count: {6}</span></div><div><span ' \
-				'class="lastRunTime">Last Run Time: {2}</span><span class="nextRunTime">Next Run Time: {' \
-				'3}</span></div><div><span class="when">Interval: {4}</span><span>Status: {' \
-				'5}</span></div><span class="start">Start</span><span class="pause">Pause</span><span ' \
-				'class="clear">Clear</span></div>'.format(job.name, job.func.__name__,
-					job.last_run_time.strftime('%Y-%m-%d %I:%M:%S %p') if job.last_run_time else '',
-					job.next_run_time.strftime('%Y-%m-%d %I:%M:%S %p') if job.next_run_time else '',
-					job.when, job.status.title(), job.run_count)
+			return job_template.format(
+				job.name,
+				job.last_run_time.strftime('%Y-%m-%d %I:%M:%S %p') if job.last_run_time else '',
+				job.next_run_time.strftime('%Y-%m-%d %I:%M:%S %p') if job.next_run_time else '',
+				job.when,
+				job.status.title(),
+				job.run_count
+			)
 
 		@staticmethod
 		def job_history_to_html(job):
@@ -76,6 +97,7 @@ def start_web_interface(scheduler):
 				html = '{}<div>{}</div>'.format(html, run_time.strftime('%Y-%m-%d %I:%M:%S %p'))
 			html = '{}</div>'.format(html)
 			return html
+
 
 	class Interface(object):
 		jobs = Jobs()

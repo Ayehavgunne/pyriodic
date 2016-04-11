@@ -2,9 +2,9 @@ from calendar import isleap
 from calendar import monthrange
 from time import sleep
 from collections import OrderedDict
+from collections import deque
 from abc import ABCMeta
 from abc import abstractclassmethod
-from collections import deque
 from datetime import datetime
 from datetime import timedelta
 from pyriodic import parse
@@ -117,7 +117,7 @@ class Job(metaclass=ABCMeta):
 	@run_async
 	def run(self, retrys=0, alt=False):
 		"""
-		Sets a job instance status to 'running' and executes the function accosiated with the job
+		Sets a job instance status to 'running' and executes the function associated with the job
 		"""
 		self.status = 'running'
 		self._add_run_time(now())
@@ -251,6 +251,7 @@ class DatetimesJob(DatetimeJob):
 	A Job Type that sets up execution based on multiple datetimes and an interval.
 	For example it could execute every 1st of the month at 5:30 pm and every 15th of the month at 12:30 am.
 	Works best for jobs that need to run at multiple specific times in intervals of a day or greater.
+	The 'when' argument needs to be a string with a comma delimiting the datetimes
 	"""
 	# noinspection PyUnusedLocal
 	def __init__(self, func, when, interval, *argums, name=None, repeating=True, threaded=True,

@@ -10,12 +10,7 @@
 				width:100%;
 				height:100%;
 				margin:0;
-			}
-			#sidebar {
-				height:100%;
-				width:100px;
-				float:left;
-				background-color:#0377E8;
+				font-family: Trebuchet MS, serif;
 			}
 			#sidebar span, #sidebar h4 {
 				float:left;
@@ -28,7 +23,7 @@
 			}
 			#content {
 				float:left;
-				width:calc(100% - 100px);
+				width:100%;
 				height:100%;
 			}
 			#content #jobs, #content h3 {
@@ -63,22 +58,31 @@
 				color:#0377E8;
 				cursor:pointer;
 			}
-			span.run {
+			div.run {
 				cursor:pointer;
 				color:#0377E8;
 			}
-			span.clear, span.pause, span.start {
-				float:right;
-				clear:right;
+			div.remove, div.pause, div.start {
+				position:absolute;
 				font-size:small;
-				position:relative;
-				bottom:4px;
-				cursor:pointer;
+				top:6px;
 				color:#0377E8;
+				display:inline;
+				margin-left:9px;
+				cursor:pointer;
+			}
+			div.remove {
+				right:30px;
+			}
+			div.pause {
+				right:118px;
+			}
+			div.start {
+				right:193px;
 			}
 		</style>
 		<script type="text/javascript">
-			$(function(){
+			$(function () {
 				function load() {
 					$.get('./jobs', function (html) {
 						$('#jobs').html(html);
@@ -87,10 +91,14 @@
 				}
 				function jobbuttons() {
 					$('.start').unbind('click').click(function () {
+						var job = $(this).parent().data('job');
+						if (!job) {
+							job = 'all';
+						}
 						$.ajax({
-							url: './jobs/' + $(this).parent().data('job') + '/start',
+							url: './jobs/' + job + '/start',
 							type: 'PUT'
-						}).done(function(html) {
+						}).done(function (html) {
 							$('#jobs').html(html);
 							jobbuttons();
 						});
@@ -108,37 +116,45 @@
 						}, 500);
 					});
 					$('.pause').unbind('click').click(function () {
+						var job = $(this).parent().data('job');
+						if (!job) {
+							job = 'all';
+						}
 						$.ajax({
-							url: './jobs/' + $(this).parent().data('job') + '/pause',
+							url: './jobs/' + job + '/pause',
 							type: 'PUT'
-						}).done(function(html) {
+						}).done(function (html) {
 							$('#jobs').html(html);
 							jobbuttons();
 						});
 					});
-					$('.clear').unbind('click').click(function () {
+					$('.remove').unbind('click').click(function () {
+						var job = $(this).parent().data('job');
+						if (!job) {
+							job = '';
+						}
 						$.ajax({
-							url: './jobs/' + $(this).parent().data('job'),
+							url: './jobs/' + job,
 							type: 'DELETE'
-						}).done(function(html) {
+						}).done(function (html) {
 							$('#jobs').html(html);
 							jobbuttons();
 						});
 					});
-					$('.when').unbind('click').click(function() {
+					$('.when').unbind('click').click(function () {
 						var text = $(this).html().replace('Interval: ', '');
-						$(this).html('<button>Done</button><input type="text" value="'+ text + '" />');
-						$(this).children().click(function(e) {
+						$(this).html('<button>Done</button><input type="text" value="' + text + '" />');
+						$(this).children().click(function (e) {
 							e.stopPropagation();
 						});
-						$(this).find('button').click(function() {
+						$(this).find('button').click(function () {
 							var val = $(this).next().val();
 							var data = $(this).parents('.job').data('job');
 							$(this).parent().html('Interval: ' + val);
 							$.ajax({
 								url: './jobs/' + data + '/when/' + val,
 								type: 'PUT'
-							}).done(function(html) {
+							}).done(function (html) {
 								$('#jobs').html(html);
 								jobbuttons();
 							});
@@ -146,45 +162,19 @@
 					});
 				}
 				load();
-				$('#start').click(function() {
-					$.ajax({
-						url: './jobs/all/start',
-						type: 'PUT'
-					}).done(function(html) {
-						$('#jobs').html(html);
-						jobbuttons();
-					});
-				});
-				$('#pause').click(function() {
-					$.ajax({
-						url: './jobs/all/pause',
-						type: 'PUT'
-					}).done(function(html) {
-						$('#jobs').html(html);
-						jobbuttons();
-					});
-				});
-				$('#clear').click(function() {
-					$.ajax({
-						url: './jobs',
-						type: 'DELETE'
-					}).done(function(html) {
-						$('#jobs').html(html);
-						jobbuttons();
-					});
+				$.get('./jobs', function (html) {
+					$('#jobs').html(html);
+					jobbuttons();
 				});
 			});
 		</script>
 	</head>
 	<body>
-		<div id="sidebar">
-			<h4>Controll All</h4>
-			<span id="start">Start</span>
-			<span id="pause">Pause</span>
-			<span id="clear">Clear</span>
-		</div>
 		<div id="content">
 			<h3>Scheduled Jobs</h3>
+			<div class="start">Start All</div>
+			<div class="pause">Pause All</div>
+			<div class="remove">Remove All</div>
 			<div id="jobs"></div>
 		</div>
 	</body>

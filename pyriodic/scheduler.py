@@ -4,7 +4,7 @@ from threading import Timer
 from . import now
 from . import start_web_interface
 
-PORT = 8765
+port = 8765
 
 
 class Scheduler(object):
@@ -25,17 +25,12 @@ class Scheduler(object):
 
 	def _set_timer(self):
 		"""
-		Finds the next job that is not paused and if it isn't already then it will set it as the current job.
+		Finds the next job and if it isn't already then it will set it as the current job.
 		From there it sets a timer to wait for the next scheduled time for that job to execute.
 		"""
 		if self.jobs:
-			x = 0
-			while self.jobs[x].is_paused():
-				x += 1
-				if x >= len(self.jobs):
-					return
-			next_job = self.jobs[x]
-			if self.current_job != next_job:
+			next_job = self.jobs[0]
+			if not next_job.is_paused and self.current_job != next_job:
 				if self.sleeper:
 					self.sleeper.cancel()
 				wait_time = (next_job.next_run_time - now()).total_seconds()
@@ -168,7 +163,7 @@ class Scheduler(object):
 		Starts all the jobs if any of them happened to be paused if it isn't already running
 		"""
 		for job in self.jobs:
-			if not job.is_running:
+			if not job.is_running():
 				job.start()
 		self.reset()
 
@@ -192,20 +187,20 @@ class Scheduler(object):
 		if cancel_current:
 			self.reset()
 
-	def start_web_server(self, pre_existing_server=False, port=PORT):
+	def start_web_server(self, pre_existing_server=False, p=port):
 		"""
 		Allows for the starting of a CherryPy web application for the viewing and management of scheduled jobs.
 		Requires that the user has the module CherryPy installed on their system
 		"""
-		global PORT
+		global port
 		try:
 			# noinspection PyUnresolvedReferences
 			import cherrypy
 			start_web_interface(self)
 			if not pre_existing_server:
-				cherrypy.config.update({'server.socket_port': port})
+				cherrypy.config.update({'server.socket_port': p})
 				cherrypy.engine.start()
-				print('Started the Pyriodic web interface at http://localhost:{}/pyriodic'.format(port))
-				PORT += 1  # increments so multiple schedulers can be instantiated and display their own jobs page
+				print('Started the Pyriodic web interface at http://localhost:{}/pyriodic'.format(p))
+				port += 1  # increments so multiple schedulers can be instantiated and display their own jobs page
 		except ImportError:
 			raise ImportError('The web interface requires that CherryPy be installed')
