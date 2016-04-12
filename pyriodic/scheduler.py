@@ -1,6 +1,5 @@
 from datetime import datetime
 from threading import Timer
-# from threading import Thread
 from . import now
 from . import start_web_interface
 
@@ -30,7 +29,7 @@ class Scheduler(object):
 		"""
 		if self.jobs:
 			next_job = self.jobs[0]
-			if not next_job.is_paused and self.current_job != next_job:
+			if not next_job.is_paused() and self.current_job != next_job:
 				if self.sleeper:
 					self.sleeper.cancel()
 				wait_time = (next_job.next_run_time - now()).total_seconds()
@@ -47,9 +46,7 @@ class Scheduler(object):
 		if self.current_job:
 			if not self.current_job.is_paused():
 				if self.current_job.threaded:
-					# self.current_job.thread = Thread(target=self.current_job.run, args=(self.current_job.retrys,))
 					self.current_job.thread = self.current_job.run(self.current_job.retrys)
-					# self.current_job.thread.start()
 				else:
 					self.current_job.run(self.current_job.retrys)
 			self.current_job = None
